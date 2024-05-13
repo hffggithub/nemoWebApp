@@ -12,6 +12,7 @@ import 'ag-grid-community/styles//ag-grid.css';
 import 'ag-grid-community/styles//ag-theme-quartz.css';
 import { useLocalStorage } from "@uidotdev/usehooks";
 import { fetchCustomers, fetchProducts, fetchPriceTiers } from '../slices/cacheSlice.js';
+import ProductHistory from '../Components/Product/ProductHistory.jsx';
 
 function Order({ productsOnOrder, setProductsOnOrder }) {
     const [filteredProductList, setFilteredProductList] = useState([])
@@ -33,6 +34,7 @@ function Order({ productsOnOrder, setProductsOnOrder }) {
     const paymentTerms = useSelector(state => state.cache.paymentTerms)
     const [selectedPaymentTerm, setSelectedPaymentTerm] = useState(0)
     const subclassState = useSelector(state => state.subclass.value)
+    const [selectedProductTab, setSelectedProductTab] = useState(0)
 
     const [orderNote, setOrderNote] = useState("");
 
@@ -45,12 +47,12 @@ function Order({ productsOnOrder, setProductsOnOrder }) {
         let add = 1;
         if (day === 6) {
             add = 2;
-        }else if (day === 5) {
+        } else if (day === 5) {
             add = 3;
         }
         dateCopy.setDate(dateCopy.getDate() + add);
         return dateCopy;
-      };
+    };
 
     const [scheduledDate, setScheduledDate] = useState(minDate)
 
@@ -69,16 +71,16 @@ function Order({ productsOnOrder, setProductsOnOrder }) {
         // { headerName: t('Chinese Name'), field: "customFieldsMap.10.value", width: 190 },
         { headerName: t('Total'), field: "inventory", width: 85 },
         { headerName: t('Available'), valueGetter: (p) => (p.data.inventory - (p.data.qtynotavailable + p.data.qtyallocated)), width: 90 },
-        { headerName: t('Price'), field: "price", valueFormatter: params => params.value.toFixed(2), width: 85  },
+        { headerName: t('Price'), field: "price", valueFormatter: params => params.value.toFixed(2), width: 85 },
         { headerName: t('UOM'), field: "unitOfMeasure", width: 85 },
-        ...(orderInfo ? [{ headerName: t('Cost'), field: "cost", valueFormatter: params => params.value.toFixed(2), width: 85  }]:  [] )
+        ...(orderInfo ? [{ headerName: t('Cost'), field: "cost", valueFormatter: params => params.value.toFixed(2), width: 85 }] : [])
     ]
 
 
     const onGridReady = useCallback((event) => {
         console.log('the grid is ready ngsh')
         setProductGridReady(true)
-    },[setProductGridReady]);
+    }, [setProductGridReady]);
 
 
     // useEffect(() => {
@@ -126,7 +128,7 @@ function Order({ productsOnOrder, setProductsOnOrder }) {
             }
             let stringShipDate = formatDate(scheduledDate, "mm/dd/yyyy")
             let stringCreatedDate = formatDate(new Date(), "mm/dd/yyyy")
-            if(customerShippingAddress !== null) {
+            if (customerShippingAddress !== null) {
                 customerToSend.shippingAddress = customerShippingAddress
             }
             try {
@@ -142,7 +144,7 @@ function Order({ productsOnOrder, setProductsOnOrder }) {
                         "fishbowlDC": dc,
                         "fishbowlSubclass": subclassState,
                         "notes": orderNote,
-                        "paymentTerms" : paymentTerms[selectedPaymentTerm].name,
+                        "paymentTerms": paymentTerms[selectedPaymentTerm].name,
                     },
                     {
                         headers: { 'Authorization': `Bearer ${token}` }
@@ -186,7 +188,7 @@ function Order({ productsOnOrder, setProductsOnOrder }) {
                 )
             }
             setShouldSendOrder(false)
-            dispatch(fetchProducts({ token: token, shouldCheckLocalStorage: false, params: { locationGroupId: dc.id} }))
+            dispatch(fetchProducts({ token: token, shouldCheckLocalStorage: false, params: { locationGroupId: dc.id } }))
         }
 
         if (shouldSendOrder) {
@@ -235,16 +237,16 @@ function Order({ productsOnOrder, setProductsOnOrder }) {
             dd: ((date.getDate()) < 10 ? "0" : "") + (date.getDate()),
             yyyy: date.getFullYear()
         }
-    
+
         return format.replace(/mm|dd|yyyy/gi, matched => map[matched])
     }
 
     const handleUserKeyPress = useCallback((event) => {
         const { key, keyCode } = event;
-        if((keyCode === 40 || keyCode === 38) && focusedElement === "productNum") {
+        if ((keyCode === 40 || keyCode === 38) && focusedElement === "productNum") {
             console.log(productGridRef)
             const firstCol = productGridRef.current?.columnApi.getAllDisplayedColumns()[0];
-            productGridRef.current?.api.setFocusedCell(0,firstCol)
+            productGridRef.current?.api.setFocusedCell(0, firstCol)
             setFocusedElement('grid')
         }
     }, [focusedElement]);
@@ -268,6 +270,10 @@ function Order({ productsOnOrder, setProductsOnOrder }) {
                 <div className='flex space-x-1'>
                     <div className="flex-initial w-1/2 h-1/4">
                         <ProductSearch focusedElement={focusedElement} setFocusedElement={setFocusedElement} selectedProduct={selectedProduct} setProductToAdd={addProduct} setFilteredProductList={setFilteredProductList} productList={productList} />
+                        <div className='tab flex flex-row rounded-t-lg'>
+                            <button id='productTab' className={selectedProductTab === 0 ? 'tablinks active' : 'tablinks'} onClick={() => { setSelectedProductTab(0) }}>{t('Product')}</button>
+                            <button id='productHistoryTab' disabled={selectedProduct === null} className={selectedProductTab === 1 ? 'tablinks active' : 'tablinks'} onClick={() => { setSelectedProductTab(1) }}>{t('Product History')}</button>
+                        </div>
                     </div>
                     <div className="flex-initial w-1/2 h-1/4">
                         <div className='flex flex-col'>
@@ -277,7 +283,7 @@ function Order({ productsOnOrder, setProductsOnOrder }) {
                             <div className='flex flex-row justify-items-start mx-2'>
                                 <div className='flex flex-auto'>
                                     <span className='self-center'>{t('Payment Term')}:</span>
-                                    <select value={selectedPaymentTerm} onChange={(e) => {setSelectedPaymentTerm(e.target.value)}} className='flex-auto border rounded-lg py-1 mx-1' id='paytermSelect'>
+                                    <select value={selectedPaymentTerm} onChange={(e) => { setSelectedPaymentTerm(e.target.value) }} className='flex-auto border rounded-lg py-1 mx-1' id='paytermSelect'>
                                         {paymentTerms.map((it, i) => {
                                             return (<option key={i} value={i}>{it.name}</option>)
                                         })
@@ -286,27 +292,29 @@ function Order({ productsOnOrder, setProductsOnOrder }) {
                                 </div>
                                 <div className='flex flex-auto'>
                                     <span className='self-center'>{t('Scheduled Shipment')}:</span>
-                                    <input id='scheduledShipment' onChange={(e) => {setScheduledDate(transformDateFromDatePicker(e.target.value))}} className='flex-auto w-32 border rounded-lg py-1 mx-1' value={formatDate(scheduledDate, 'yyyy-mm-dd')} min={formatDate(new Date(), 'yyyy-mm-dd')} type='date'></input>
+                                    <input id='scheduledShipment' onChange={(e) => { setScheduledDate(transformDateFromDatePicker(e.target.value)) }} className='flex-auto w-32 border rounded-lg py-1 mx-1' value={formatDate(scheduledDate, 'yyyy-mm-dd')} min={formatDate(new Date(), 'yyyy-mm-dd')} type='date'></input>
                                 </div>
                                 <div className='flex flex-auto'>
-                                    <input id='orderNote' value={orderNote} onChange={(e) => {setOrderNote(e.target.value)}} placeholder={t('Order Note')} className='flex-auto w-full border rounded-lg py-1 px-2 mx-1' type='text'></input>
+                                    <input id='orderNote' value={orderNote} onChange={(e) => { setOrderNote(e.target.value) }} placeholder={t('Order Note')} className='flex-auto w-full border rounded-lg py-1 px-2 mx-1' type='text'></input>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
                 <div className='flex h-5/6 w-full space-x-1'>
-                    <div className='ag-theme-quartz flex-initial w-1/2 h-full'>
-                        <h1 className='self-center'>{t('Product')}</h1>
-                        <AgGridReact
-                            onGridReady={onGridReady}
-                            ref={productGridRef}
-                            onRowSelected={onProductSelected}
-                            gridOptions={gridOptions}
-                            rowSelection="single"
-                            columnDefs={columnDefs}
-                            rowData={filteredProductList}>
-                        </AgGridReact>
+                    <div className='w-1/2 h-full tabcontent rounded-b-lg'>
+                        {selectedProductTab === 0 && <div className='ag-theme-quartz w-full h-full'>
+                            <AgGridReact
+                                onGridReady={onGridReady}
+                                ref={productGridRef}
+                                onRowSelected={onProductSelected}
+                                gridOptions={gridOptions}
+                                rowSelection="single"
+                                columnDefs={columnDefs}
+                                rowData={filteredProductList}>
+                            </AgGridReact>
+                        </div> }
+                        {(selectedProductTab === 1 && selectedProduct !== null) && <ProductHistory selectedProduct={selectedProduct} />}
                     </div>
                     <div className='flex flex-col flex-initial w-1/2 h-full'>
                         <div className='flex-initial w-full h-full' >
