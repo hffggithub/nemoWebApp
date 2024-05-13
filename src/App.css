@@ -1,3 +1,56 @@
 main {
     height: 91%;
 }
+
+.inputBox {
+    display:block;
+    padding: .5rem .625rem;
+    border-width: 1px;
+    border-radius: .5rem;
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+}
+
+.primary-button {
+    font-weight: 500;
+    text-align: center;
+    padding: .5rem 1.25rem;
+    border-radius: .5rem;
+    font-size: .875rem;
+    line-height: 1.25rem;
+}
+
+select.primary-select {
+    border-width: 1px;
+    border-radius: .5rem;
+    font-size:.875rem;
+    line-height: 1.25rem;
+    padding: .5rem .625rem;
+}
+
+.datePicker input {
+    border-radius: .5rem;
+    border-width: 1px;
+    padding: .5rem 1.25rem;
+    font-size:.875rem;
+    line-height: 1.25rem;
+    margin-right: 1rem;
+}
+.datePicker label {
+    margin-right: .5rem;
+}
+
+.searchBar {
+    margin-bottom: .25rem;
+}
+
+.actionIcons {
+    font-size: 1rem;
+}
+.actionIcons button {
+    margin-right: .75rem;
+    color: rgb(var(--primary-button-hover-bg-rgb))
+}
+.actionIcons button:disabled {
+    color: rgb(var(--primary-button-disabled-bg-rgb))
+}

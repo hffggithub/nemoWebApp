@@ -24,15 +24,15 @@ function Customer() {
     const [openOrder, setOpenOrder] = useState(null)
 
     const columnDefs = [
-        { headerName: t("Customer ID"), field: "number" },
-        { headerName: t('Name'), field: "name" },
-        { headerName: t('Chinese Name'), field: "customFields.18.value" },
-        { headerName: t('Contact'), field: "contactName" },
-        { headerName: t('Phone Number'), field: "contactNumber" },
-        { headerName: t('Street'), field: "shippingAddress.street" },
-        { headerName: t('City'), field: "shippingAddress.city" },
-        { headerName: t('State'), field: "shippingAddress.state" },
-        { headerName: t('Country'), field: "shippingAddress.country" }
+        { headerName: t("Customer ID"), field: "number", width: 130 },
+        { headerName: t('Name'), field: "name", flex: 2 },
+        { headerName: t('Chinese Name'), field: "customFields.18.value", flex: 2 },
+        { headerName: t('Contact'), field: "contactName", flex: 1 },
+        { headerName: t('Phone Number'), field: "contactNumber", flex: 1 },
+        { headerName: t('Street'), field: "shippingAddress.street", flex: 1 },
+        { headerName: t('City'), field: "shippingAddress.city", flex: 1 },
+        { headerName: t('State'), field: "shippingAddress.state", flex: 1 },
+        { headerName: t('Country'), field: "shippingAddress.country", flex: 1 }
     ]
 
     useEffect(() => {
@@ -141,9 +141,11 @@ function Customer() {
     return (
         <>
             <div className="w-full h-full">
-                <div className="flex space-x-2 items-center">
-                    <input onChange={(e) => { filterCustomers(e.target.value) }} type="text" name="filter" id="filter" className="border sm:text-sm rounded-lg block w-2/3 my-1 p-2.5" placeholder={t('Customer search')} />
-                    <button onClick={() => {dispatch(toScreen('orderLookup'))}} className="primary-button font-medium rounded-lg text-center p-2">{t('Order Lookup')}</button>
+                <div className="flex space-x-2 searchBar">
+                    <input onChange={(e) => { filterCustomers(e.target.value) }} type="text" name="filter" id="filter" className="inputBox basis-1/2" placeholder={t('Customer search')} />
+                    <div className="basis-1/2 text-right">  
+                       <button onClick={() => {dispatch(toScreen('orderLookup'))}} className="primary-button">{t('Order Lookup')}</button>
+                    </div>
                     {/* <input type="checkbox" id="enableOrderLookup" name="enableOrderLookup" checked={orderLookup} onChange={() => {handleOrderLookupCheckbox()}}></input>
                     <label htmlFor="enableOrderLookup h-fit">{t('Order Lookup')}</label> */}
 

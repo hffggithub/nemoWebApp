@@ -75,7 +75,7 @@ function App() {
   return (
     <>
       <PrimeReactProvider>
-        <div className='min-h-screen h-screen w-screen'>
+        <div className='min-h-screen h-screen w-full'>
           {errorState.showError && <ErrorModal title={errorState.errorTile} body={errorState.errorBody} dismissButtonTitle={'ok'} dismissAction={errorState.errorButton} setProductsOnOrder={setProductsOnOrder} setDistributionCenter={setDistributionCenter} setSubclass={setSubclass}/>}
           <div className=' h-20'>
             <Navbar setNavOption={setNavOption} navOption={navOption} subclass={subclass} distributionCenter={distributionCenter} setDistributionCenter={setDistributionCenter} setSubclass={setSubclass} setProductsOnOrder={setProductsOnOrder} />

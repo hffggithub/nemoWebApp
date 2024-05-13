@@ -63,13 +63,13 @@ function Order({ productsOnOrder, setProductsOnOrder }) {
     }, [productList])
 
     const columnDefs = [
-        { headerName: t('ID'), field: "num", width: 80 },
-        { headerName: t('Name'), field: "description", width: 190 },
-        { headerName: t('Chinese Name'), field: "chineseName", width: 190 },
+        { headerName: t('ID'), field: "num", width: 120 },
+        { headerName: t('Name'), field: "description", flex: 2 },
+        { headerName: t('Chinese Name'), field: "chineseName", flex: 2},
         // { headerName: t('Chinese Name'), field: "customFieldsMap.10.value", width: 190 },
-        { headerName: t('Total'), field: "inventory", width: 85 },
-        { headerName: t('Available'), valueGetter: (p) => (p.data.inventory - (p.data.qtynotavailable + p.data.qtyallocated)), width: 90 },
-        { headerName: t('Price'), field: "price", valueFormatter: params => params.value.toFixed(2), width: 85  },
+        { headerName: t('Total'), field: "inventory", width: 85, type: 'rightAligned', valueFormatter: params => params.value.toFixed(0) },
+        { headerName: t('Available'), valueGetter: (p) => (p.data.inventory - (p.data.qtynotavailable + p.data.qtyallocated)), width: 90, type: 'rightAligned', valueFormatter: params => params.value.toFixed(0) },
+        { headerName: t('Price'), field: "price", valueFormatter: params => params.value.toFixed(2), width: 85, type: 'rightAligned'  },
         { headerName: t('UOM'), field: "unitOfMeasure", width: 85 },
         ...(orderInfo ? [{ headerName: t('Cost'), field: "cost", valueFormatter: params => params.value.toFixed(2), width: 85  }]:  [] )
     ]
@@ -200,14 +200,12 @@ function Order({ productsOnOrder, setProductsOnOrder }) {
     }
 
     function onProductSelected(event) {
-        console.log(event)
-        if (!event.node.isSelected()) {
-            return;
+        var selectedRows = event.api.getSelectedRows();
+        if (selectedRows.length) {
+            setSelectedProduct(selectedRows[0])
+            setFocusedElement('qty')
+            event.api.deselectAll('apiSelectAll')
         }
-        console.log(event.data)
-        setSelectedProduct(event.data)
-        setFocusedElement('qty')
-        productGridRef.current?.api.deselectAll('apiSelectAll')
     }
 
     function addProduct(product) {
@@ -265,7 +263,7 @@ function Order({ productsOnOrder, setProductsOnOrder }) {
     return (
         <>
             <div className="w-full h-full">
-                <div className='flex space-x-1'>
+                <div className='flex space-x-1 items-end'>
                     <div className="flex-initial w-1/2 h-1/4">
                         <ProductSearch focusedElement={focusedElement} setFocusedElement={setFocusedElement} selectedProduct={selectedProduct} setProductToAdd={addProduct} setFilteredProductList={setFilteredProductList} productList={productList} />
                     </div>
@@ -301,7 +299,8 @@ function Order({ productsOnOrder, setProductsOnOrder }) {
                         <AgGridReact
                             onGridReady={onGridReady}
                             ref={productGridRef}
-                            onRowSelected={onProductSelected}
+                            // onSelectionChanged={onProductSelected}
+                            onRowClicked={onProductSelected}
                             gridOptions={gridOptions}
                             rowSelection="single"
                             columnDefs={columnDefs}
