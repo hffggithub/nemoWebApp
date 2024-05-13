@@ -14,6 +14,7 @@ import OrderSummary from '../Components/Orders/OrderSummary';
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faClone } from "@fortawesome/free-solid-svg-icons";
 import { faPenToSquare } from "@fortawesome/free-solid-svg-icons";
+import { addToDate } from '../utils/timeUtils';
 
 
 function OrderLookup({ setProductsOnOrder }) {
@@ -177,11 +178,13 @@ function OrderLookup({ setProductsOnOrder }) {
     useEffect(() => {
         async function fetchData() {
             if (shouldFetchOrders) {
+                // Added to include the end date on the range.
+                let calculatedEndDate = addToDate(endDate, 1)
                 try {
                     let result = await axios.get(
                         // import.meta.env.VITE_API_BASE_URL + `orders/forCustomer?customerId=${customerState.id}`,
                         
-                        import.meta.env.VITE_API_BASE_URL + `orders/all?startDate=${formatDate(startDate,"yyyy-mm-dd")}&endDate=${formatDate(endDate,"yyyy-mm-dd")}`,
+                        import.meta.env.VITE_API_BASE_URL + `orders/all?startDate=${formatDate(startDate,"yyyy-mm-dd")}&endDate=${formatDate(calculatedEndDate,"yyyy-mm-dd")}`,
                         {
                             headers: { 'Authorization': `Bearer ${token}` }
                         }
