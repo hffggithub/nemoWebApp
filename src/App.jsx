@@ -56,6 +56,15 @@ function App() {
   }, [token, fetchedState, distributionCenter, dc, dispatch, fetchingState])
 
   useEffect(() => {
+    if(token === null) {
+      triesCustomerCache.current = 0;
+      triesProductsCache.current = 0;
+      triesPriceTiersCache.current = 0;
+      triesPaymentTermsCache.current = 0;
+    }
+  }, [token]);
+
+  useEffect(() => {
     let title = "HF Foods"
     if (subclass !== null && distributionCenter !== null) {
       title = distributionCenter.name + ":" + subclass + " - " + title
