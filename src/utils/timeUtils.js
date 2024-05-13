@@ -12,12 +12,12 @@ export function dateInFuture(numberOfDays) {
 }
 
 export function addToDate(date, numberOfDays) {
-    var futureDate = new Date(new Date().setDate(date + numberOfDays));
+    var futureDate = new Date(new Date().setDate(date.getDate() + numberOfDays));
     return futureDate
 }
 
 export function substractToDate(date, numberOfDays) {
-    var priorDate = new Date(new Date().setDate(date - numberOfDays));
+    var priorDate = new Date(new Date().setDate(date.getDate() - numberOfDays));
     return priorDate
 }
 
