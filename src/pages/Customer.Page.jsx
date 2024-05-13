@@ -98,7 +98,8 @@ function Customer() {
             const countryFilter = customer.shippingAddress.country ? customer.shippingAddress.country.toLowerCase().includes(lowerCaseFilter) : false
             const contactNameFilter = customer.contactName ? customer.contactName.toLowerCase().includes(lowerCaseFilter) : false
             const contactNumberFilter = customer.contactNumber ? customer.contactNumber.toLowerCase().includes(lowerCaseFilter) : false
-            const chineseNameFilter = customer.customFields["18"]?.value ? customer.customFields["18"].value.toLowerCase().includes(lowerCaseFilter) : false
+            // TODO: Enable again once fishbowlserver02 has chinese translations.
+            // const chineseNameFilter = customer.customFields["18"]?.value ? customer.customFields["18"].value.toLowerCase().includes(lowerCaseFilter) : false
             return (
                 customer.number.toLowerCase().includes(lowerCaseFilter) ||
                 customer.name.toLowerCase().includes(lowerCaseFilter) ||
@@ -107,7 +108,7 @@ function Customer() {
                 customer.shippingAddress.street.toLowerCase().includes(lowerCaseFilter) ||
                 customer.shippingAddress.city.toLowerCase().includes(lowerCaseFilter) ||
                 stateFilter ||
-                chineseNameFilter ||
+                // chineseNameFilter ||
                 countryFilter
             );
         });
