@@ -264,6 +264,24 @@ function Order({ productsOnOrder, setProductsOnOrder }) {
         return new Date(date.getTime() + userTimezoneOffset);
     }
 
+    function cancelOrderEdit() {
+        if(productsOnOrder.length > 0) {
+            dispatch(
+                showError(
+                    {
+                        errorTile: t('Changes not saved'),
+                        errorBody: t(`The order has changed that are not saved, Do you want to discard the changes?`),
+                        errorButton: t('unsavedOrder'),
+                        showError: true,
+                    }
+                )
+            )
+        } else {
+            setProductsOnOrder([]);
+            dispatch(clearSelectedCustomer());
+        }
+    }
+
     return (
         <>
             <div className="w-full h-full">
@@ -325,7 +343,7 @@ function Order({ productsOnOrder, setProductsOnOrder }) {
                             <label htmlFor="orderInfo">{t('Order information')}</label>
                         </div>
                         <div className='flex flex-initial w-full h-15 justify-evenly px-10'>
-                            <button disabled={shouldSendOrder} onClick={() => { setProductsOnOrder([]); dispatch(clearSelectedCustomer()); }} className='primary-button font-medium rounded-lg px-5 py-2.5 text-center me-2 mb-2'>{t('Cancel')}</button>
+                            <button disabled={shouldSendOrder} onClick={() => { cancelOrderEdit() }} className='primary-button font-medium rounded-lg px-5 py-2.5 text-center me-2 mb-2'>{t('Cancel')}</button>
                             <button disabled={shouldSendOrder} onClick={() => { submitOrder('save') }} className='primary-button font-medium rounded-lg px-5 py-2.5 text-center me-2 mb-2'>{t('Save')}</button>
                             <button disabled={shouldSendOrder} onClick={() => { submitOrder('send') }} className='primary-button font-medium rounded-lg px-5 py-2.5 text-center me-2 mb-2'>{t('Send')}</button>
                         </div>

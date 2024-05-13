@@ -65,7 +65,7 @@ function ErrorModal({ title, body, dismissButtonTitle, dismissAction, setProduct
             return
         }
         dispatch(hideError())
-        if(dismissAction === 'returnHome') {
+        if(dismissAction === 'returnHome' || dismissAction === 'unsavedOrder') {
             setProductsOnOrder([])
             dispatch(clearSelectedCustomer())
         }
@@ -74,6 +74,16 @@ function ErrorModal({ title, body, dismissButtonTitle, dismissAction, setProduct
             dispatch(toScreen('newOrder'))
         }
 
+    }
+
+    function shouldShowDeclineButton() {
+        switch(dismissAction) {
+            case 'unsavedOrder':
+            case 'openOrder':
+                return true
+            default:
+                return false
+        }
     }
 
     return (
@@ -85,7 +95,7 @@ function ErrorModal({ title, body, dismissButtonTitle, dismissAction, setProduct
                             <h3 className="text-xl">
                                 {title}
                             </h3>
-                            <button type="button" onClick={() => { dispatch(hideError()) }} className="bg-transparent rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center">
+                            <button type="button" onClick={() => { if(shouldShowDeclineButton()) {dismissDecline()} else {dismissConfirm()} }} className="bg-transparent rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center">
                                 <svg className="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
                                     <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6" />
                                 </svg>
@@ -99,8 +109,8 @@ function ErrorModal({ title, body, dismissButtonTitle, dismissAction, setProduct
                         </div>
 
                         <div className="flex items-center p-4 md:p-5 border-t rounded-b">
-                            {dismissAction === 'openOrder' && <button type="button" onClick={() => { dismissDecline()} } className="primary-button mx-auto uppercase focus:ring-4 focus:outline-none font-medium rounded-lg text-sm px-5 py-2.5 text-center">{t('no')}</button>}
-                            <button type="button" onClick={() => { dismissConfirm()} } className="primary-button mx-auto uppercase focus:ring-4 focus:outline-none font-medium rounded-lg text-sm px-5 py-2.5 text-center">{dismissAction !== 'openOrder' ? dismissButtonTitle : t('yes')}</button>
+                            {shouldShowDeclineButton() && <button type="button" onClick={() => { dismissDecline()} } className="primary-button mx-auto uppercase focus:ring-4 focus:outline-none font-medium rounded-lg text-sm px-5 py-2.5 text-center">{t('no')}</button>}
+                            <button type="button" onClick={() => { dismissConfirm()} } className="primary-button mx-auto uppercase focus:ring-4 focus:outline-none font-medium rounded-lg text-sm px-5 py-2.5 text-center">{shouldShowDeclineButton() ? t('yes') : dismissButtonTitle}</button>
                         </div>
                     </div>
                 </div>
