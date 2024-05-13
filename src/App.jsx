@@ -80,7 +80,7 @@ function App() {
           <div className=' h-20'>
             <Navbar setNavOption={setNavOption} navOption={navOption} subclass={subclass} distributionCenter={distributionCenter} setDistributionCenter={setDistributionCenter} setSubclass={setSubclass} setProductsOnOrder={setProductsOnOrder} />
           </div>
-          <main className="flex justify-center items-center p-10">
+          <main className="flex justify-center items-center px-10 py-1">
             {(distributionCenter === null || subclass === null || token === null) &&
               <Welcome setErrorTitle={setErrorTitle} setErrorBody={setErrorBody} setErrorModalVisible={setErrorModalVisible} setDistributionCenter={setDistributionCenter} setSubclass={setSubclass} />
             }

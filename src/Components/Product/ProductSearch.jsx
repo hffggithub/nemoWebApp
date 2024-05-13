@@ -32,8 +32,20 @@ function ProductSearch({ selectedProduct, setProductToAdd, setFilteredProductLis
                 return price.productNumber === selectedProduct.id
             })
             setProductPrices(filteredPrices)
+            if (isCatchWeight(selectedProduct)) {
+                const numberCatchWeight = parseFloat(getMaxCatchWeight(selectedProduct))
+                if (numberCatchWeight) {
+                    catchWeight.current = numberCatchWeight
+                }
+                let floatProductQty = parseFloat(productQty);
+                setProductNote(`Grab ${isNaN(floatProductQty) ? 0.0 : floatProductQty } ${floatProductQty === 1.0 ? 'case' : 'cases' }.`)
+                setProductUom("Cs")
+            } else {
+                setProductNote("")
+                catchWeight.current = 1.0
+            }
         }
-    }, [selectedProduct, setProductPrices, productPrices, setProductName, setProductUom, setProductPrice])
+    }, [selectedProduct, setProductPrices, productPrices, setProductName, setProductUom, setProductPrice, productQty, setProductNote])
     console.log(selectedProduct)
     function filterProducts(inputFilter) {
         const filter = inputFilter.toLowerCase()
@@ -47,18 +59,6 @@ function ProductSearch({ selectedProduct, setProductToAdd, setFilteredProductLis
 
         setFilteredProductList(result);
     }
-    useEffect(() => {
-        if (isCatchWeight(selectedProduct)) {
-            const numberCatchWeight = parseFloat(getMaxCatchWeight(selectedProduct))
-            if (numberCatchWeight) {
-                catchWeight.current = numberCatchWeight
-            }
-            setProductNote("By Catch Weight, Max " + getMaxCatchWeight(selectedProduct) + " " + selectedProduct.unitOfMeasure)
-        } else {
-            setProductNote("")
-            catchWeight.current = 1.0
-        }
-    }, [selectedProduct, setProductNote])
 
     function getMaxCatchWeight(product) {
         if (product === null || product === undefined) {
@@ -91,11 +91,11 @@ function ProductSearch({ selectedProduct, setProductToAdd, setFilteredProductLis
             productName: productName,
             productNumber: selectedProduct.num,
             chineseName: selectedProduct.chineseName,
-            quantity: parseFloat(productQty) ?? 0,
-            uom: productUom,
-            price: (parseFloat(productPrice) ?? 0.0) * catchWeight.current,
+            quantity: (parseFloat(productQty) ?? 0) * catchWeight.current,
+            uom: selectedProduct.unitOfMeasure,
+            price: (parseFloat(productPrice) ?? 0.0),
             note: productNote,
-            weight: catchWeight.current === 1 ? selectedProduct.weight : catchWeight.current,
+            weight: selectedProduct.weight,
             cost: selectedProduct.cost,
         })
         setProductName("")
