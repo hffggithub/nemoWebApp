@@ -65,7 +65,7 @@ function Order({ productsOnOrder, setProductsOnOrder }) {
     }, [productList])
 
     const columnDefs = [
-        { headerName: t('ID'), field: "num", width: 80 },
+        { headerName: t('ID'), field: "num", width: 100 },
         { headerName: t('Name'), field: "description", width: 190 },
         { headerName: t('Chinese Name'), field: "chineseName", width: 190 },
         // { headerName: t('Chinese Name'), field: "customFieldsMap.10.value", width: 190 },

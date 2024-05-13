@@ -141,7 +141,7 @@ function OrderSummary({ productList, setProductList, showRemoveButton, orderInfo
 
 
     const columnDefsSumary = [
-        { headerName: t('ID'), field: "productNumber", width: 80 },
+        { headerName: t('ID'), field: "productNumber", width: 100 },
         { headerName: t('Name'), field: "productName" },
         { headerName: t('Chinese Name'), field: "chineseName", width: 150 },
         { headerName: t('Quantity'), valueGetter: (p) => p.data, cellRenderer: QuantityTextField, width: 100  },
