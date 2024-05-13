@@ -11,6 +11,9 @@ import { useLocalStorage } from "@uidotdev/usehooks";
 import { returnHome } from '../slices/navSlice';
 import CustomerInfo from '../Components/Customer/CustomerInfo';
 import OrderSummary from '../Components/Orders/OrderSummary';
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faClone } from "@fortawesome/free-solid-svg-icons";
+import { faPenToSquare } from "@fortawesome/free-solid-svg-icons";
 import { addToDate } from '../utils/timeUtils';
 
 
@@ -42,21 +45,12 @@ function OrderLookup({ setProductsOnOrder }) {
 
     const dispatch = useDispatch()
 
-    const ModifyButton = props => {
+    const ActionButtons = props => {
         return (<>
-            <button onClick={() => { mergeForClone(props.value.lineItems, props.value.customerNumber); dispatch(returnHome()) }} disabled={props.value.statusId !== 10 && props.value.statusId !== 20} className='primary-button focus:ring-4 focus:outline-none font-medium rounded-lg px-1'>{t('Modify')}</button>
-        </>)
-    }
-
-    const CloneButton = props => {
-        return (<>
-            <button onClick={() => { mergeForClone(props.value.lineItems, props.value.customerNumber); dispatch(returnHome()) }} className='primary-button focus:ring-4 focus:outline-none font-medium rounded-lg px-1'>{t('Clone')}</button>
-        </>)
-    }
-
-    const ViewButton = props => {
-        return (<>
-            <button onClick={() => { console.log(props.value.lineItems); showViewOrderItems(props.value.lineItems) }} className='primary-button focus:ring-4 focus:outline-none font-medium rounded-lg px-1'>{t('View')}</button>
+            <span class="actionIcons">
+                <button onClick={() => { mergeForClone(props.value.lineItems, props.value.customerNumber); dispatch(returnHome()) }} disabled={props.value.statusId !== 10 && props.value.statusId !== 20} title={t('Modify')}><FontAwesomeIcon icon={faPenToSquare} /></button>
+                <button onClick={() => { mergeForClone(props.value.lineItems, props.value.customerNumber); dispatch(returnHome()) }} title={t('Clone')}><FontAwesomeIcon icon={faClone} /></button>
+            </span>
         </>)
     }
 
@@ -154,20 +148,32 @@ function OrderLookup({ setProductsOnOrder }) {
         return orderStatusMap.find((it) => it.id === id).name
     }
 
+    const currencyFormat = new Intl.NumberFormat('en-US', {
+        minimumFractionDigits: 2
+    });
+
+    function currencyFormatter(params) {
+        return currencyFormat.format(params.value);
+    }
 
     const columnDefs = [
-        { headerName: t('ID'), field: "num", width: 60 },
-        { headerName: t("Customer ID"), field: "customerNumber", width: 120 },
-        { headerName: t("Customer Name"), field: "customerName", width: 150 },
+        { headerName: t('ID'), field: "num", width: 135 },
+        { headerName: t("Customer ID"), field: "customerNumber", width: 130 },
+        { headerName: t("Customer Name"), field: "customerName", flex: 2 },
         { headerName: t('Created'), field: "createdDate", valueFormatter: params => params.value.split('T')[0] , width: 120 },
-        { headerName: t('Status'), field: "statusId", valueFormatter: params => t(getOrderStatusStatus(params.value)), width: 90 },
-        { headerName: t('Tax Rate'), field: "taxRate", width: 90  },
-        { headerName: t('Total Price'), field: "totalPrice", width: 100 },
-        { headerName: t('Items'), field: "lineItems", valueFormatter: params => params.value.length, width: 90 },
-        { headerName: t('View'), valueGetter: (p) => p.data, cellRenderer: ViewButton, width: 90 },
-        { headerName: t('Modify'), valueGetter: (p) => p.data, cellRenderer: ModifyButton, width: 90 },
-        { headerName: t('Clone'), valueGetter: (p) => p.data, cellRenderer: CloneButton, width: 90 }
+        { headerName: t('Status'), field: "statusId", valueFormatter: params => t(getOrderStatusStatus(params.value)), width: 120 },
+        { headerName: t('Tax Rate'), field: "taxRate", width: 90, valueFormatter: currencyFormatter, type: 'rightAligned' },
+        { headerName: t('Total Price'), field: "totalPrice", width: 100, valueFormatter: currencyFormatter, type: 'rightAligned'},
+        { headerName: t('Items'), field: "lineItems", valueFormatter: params => params.value.length, width: 90, type: 'rightAligned' },
+        { headerName: '', valueGetter: (p) => p.data, cellRenderer: ActionButtons, width: 90, type: 'centerAligned', resizable: false }
     ]
+
+    function orderSelected(event) {
+        if (!event.node.isSelected()) {
+            return;
+        }
+        showViewOrderItems(event.data.lineItems)
+    }
 
     useEffect(() => {
         async function fetchData() {
@@ -231,14 +237,16 @@ function OrderLookup({ setProductsOnOrder }) {
 
     return (<>
         <div className='h-full w-full'>
-            <div className='flex w-full space-x-2'>
-                <button onClick={() => { dispatch(clearSelectedCustomer()); dispatch(returnHome()) }} className='primary-button font-medium rounded-lg px-5 py-2.5 text-center'>{t('Back')}</button>
-                <input type='text' onChange={(e) => { filterList(e.target.value) }} className='border rounded-lg block w-2/3 my-1 p-2.5' placeholder={t('Search')} id='orderSearchInput'></input>
-                <span className='self-center'>{t('From')}</span>
-                <input type='date' max={formatDate(endDate, "yyyy-mm-dd")} value={formatDate(startDate, "yyyy-mm-dd")} className='border rounded-lg block my-1 p-2.5' onChange={(e) => { setStartDate(getDateWithoutTimezone(new Date(e.target.value))) }} id='startDateInput'/>
-                <span className='self-center'>{t('To')}</span>
-                <input type='date' min={formatDate(startDate, "yyyy-mm-dd")} value={formatDate(endDate, "yyyy-mm-dd")} className='border rounded-lg block my-1 p-2.5' onChange={(e) => { setEndDate(getDateWithoutTimezone(new Date(e.target.value))) }} id='endDateInput'/>
-                <button onClick={() => { setShouldFetchOrders(true) }} className='primary-button font-medium rounded-lg px-5 py-2.5 text-center'>{t('Search')}</button>
+            <div className='flex space-x-2 searchBar w-2/3'>
+                <button onClick={() => { dispatch(clearSelectedCustomer()); dispatch(returnHome()) }} className='primary-button flex-none'>{t('Back')}</button>
+                <input type='text' onChange={(e) => { filterList(e.target.value) }} className='inputBox grow' placeholder={t('Search')} id='orderSearchInput'></input>
+                <span class="pl-2 datePicker">
+                    <label for="startDateInput" className='self-center'>{t('From')}</label>
+                    <input type='date' max={formatDate(endDate, "yyyy-mm-dd")} value={formatDate(startDate, "yyyy-mm-dd")} onChange={(e) => { setStartDate(getDateWithoutTimezone(new Date(e.target.value))) }} id='startDateInput'/>
+                    <label for="endDateInput" className='self-center'>{t('To')}</label>
+                    <input type='date' min={formatDate(startDate, "yyyy-mm-dd")} value={formatDate(endDate, "yyyy-mm-dd")} onChange={(e) => { setEndDate(getDateWithoutTimezone(new Date(e.target.value))) }} id='endDateInput'/>
+                    <button onClick={() => { setShouldFetchOrders(true) }} className='primary-button'>{t('Search')}</button>
+                </span>
             </div>
             <div className='flex w-full h-5/6 space-x-1'>
                 <div
@@ -246,7 +254,9 @@ function OrderLookup({ setProductsOnOrder }) {
                 >
                     <AgGridReact
                         columnDefs={columnDefs}
-                        rowData={filteredList}>
+                        rowData={filteredList}
+                        rowSelection="single"
+                        onRowSelected={orderSelected}>
                     </AgGridReact>
                 </div>
                 <div

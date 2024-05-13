@@ -92,8 +92,8 @@ function Navbar({ setNavOption, navOption, distributionCenter, subclass, setDist
                     <div className="w-full md:block md:w-auto" id="navbar-solid-bg">
                         <div className="flex items-center space-x-3 rtl:space-x-reverse">
                             {(token !== null && distributionCenter !== null && subclass !== null) && <span className="self-center font-semibold whitespace-nowrap">{distributionCenter.name}:{subclass}</span> }
-                            {token !== null && <button type="button" onClick={() => {setTryLogout(true)}} className="primary-button font-medium rounded-lg text-sm px-5 py-2.5 text-center me-2 mb-2">{t('Logout')}</button>}
-                            <select id="languagePref" className="border text-sm rounded-lg block w-full p-2.5" onChange={(e) => {setActiveLanguage(e.target.value);}} value={activeLanguage}>
+                            {token !== null && <button type="button" onClick={() => {setTryLogout(true)}} className="primary-button">{t('Logout')}</button>}
+                            <select id="languagePref" className="primary-select" onChange={(e) => {setActiveLanguage(e.target.value);}} value={activeLanguage}>
                                 {
                                     lanugageOptions.map((lanugage) => {
                                         return <option value={lanugage} key={lanugage}>{t(lanugage)}</option>

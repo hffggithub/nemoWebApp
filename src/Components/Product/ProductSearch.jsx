@@ -139,28 +139,26 @@ function ProductSearch({ selectedProduct, setProductToAdd, setFilteredProductLis
     }, [focusedElement])
 
     return (
-        <div className="h-full w-full">
-            <div className="flex space-x-1 my-1">
-                <div className="flex-auto">
-                    <div className="flex space-x-1 my-1">
-                        <input ref={numRef} autoFocus onKeyUp={(e) => { if (e.key === 'Enter') { handleOnFocus('qty') } }} onFocus={() => { handleOnFocus('productNum') }} autoComplete='off' onChange={(e) => { filterProducts(e.target.value); setProductName(e.target.value); }} value={productName} className="border rounded-lg p-2.5 flex-auto" type="text" placeholder={t("Product")} id="productSearch"></input>
-                        <input onChange={(e) => { setProductQty(e.target.value) }} onKeyUp={(e) => { if (e.key === 'Enter') { handleOnFocus('price') } }} onFocus={() => { handleOnFocus('qty') }} ref={qtyRef} autoComplete='off' value={productQty} className="border rounded-lg p-2.5 flex-auto w-3" type="text" placeholder={t("Qty")} id="productQty"></input>
-                        <input onChange={(e) => { setProductUom(e.target.value) }} disabled={true} onFocus={() => { handleOnFocus('uom') }} autoComplete='off' value={productUom} className="border rounded-lg p-2.5 flex-auto w-5" type="text" placeholder={t("UOM")} id="productUom"></input>
-                        <input ref={priceRef} onChange={(e) => { setProductPrice(e.target.value) }} onKeyUp={(e) => { if (e.key === 'Enter') { handleOnFocus('note') } }} onFocus={() => { handleOnFocus('price') }} value={productPrice} list='priceList' className="border rounded-lg p-2.5 flex-auto w-3" type="text" placeholder={t("Price")} id="productPrice" />
-                        <datalist id='priceList'>
-                            {
-                                productPrices !== null && productPrices != undefined && productPrices.prices.map((it, i) => {
-                                    return (<option value={it} key={i}>{it.toFixed(2) + " - " + productPrices.titles[i]}</option>);
-                                })
-                            }
-                        </datalist>
-                    </div>
-                    <div className="flex space-x-1 my-1">
-                        <input ref={noteRef} onChange={(e) => { setProductNote(e.target.value) }} onKeyUp={(e) => { if (e.key === 'Enter') { handleOnFocus('add') } }} autoComplete='off' onFocus={() => { handleOnFocus('note') }} value={productNote} className="border rounded-lg p-2.5 flex-auto" type="text" placeholder={t("Note")} id="productNote"></input>
-                    </div>
+        <div className="flex space-x-1 my-1">
+            <div className="flex-auto">
+                <div className="flex space-x-1">
+                    <input ref={numRef} autoFocus onKeyUp={(e) => { if (e.key === 'Enter') { handleOnFocus('qty') } }} onFocus={() => { handleOnFocus('productNum') }} autoComplete='off' onChange={(e) => { filterProducts(e.target.value); setProductName(e.target.value); }} value={productName} className="inputBox grow" type="text" placeholder={t("Product")} id="productSearch"></input>
+                    <input onChange={(e) => { setProductQty(e.target.value) }} onKeyUp={(e) => { if (e.key === 'Enter') { handleOnFocus('price') } }} onFocus={() => { handleOnFocus('qty') }} ref={qtyRef} autoComplete='off' value={productQty} className="inputBox w-32" type="text" placeholder={t("Qty")} id="productQty"></input>
+                    <input onChange={(e) => { setProductUom(e.target.value) }} disabled={true} onFocus={() => { handleOnFocus('uom') }} autoComplete='off' value={productUom} className="inputBox w-32" type="text" placeholder={t("UOM")} id="productUom"></input>
+                    <input ref={priceRef} onChange={(e) => { setProductPrice(e.target.value) }} onKeyUp={(e) => { if (e.key === 'Enter') { handleOnFocus('note') } }} onFocus={() => { handleOnFocus('price') }} value={productPrice} list='priceList' className="inputBox w-32" type="text" placeholder={t("Price")} id="productPrice" />
+                    <datalist id='priceList'>
+                        {
+                            productPrices !== null && productPrices != undefined && productPrices.prices.map((it, i) => {
+                                return (<option value={it} key={i}>{it.toFixed(2) + " - " + productPrices.titles[i]}</option>);
+                            })
+                        }
+                    </datalist>
                 </div>
-                <button ref={addRef} onClick={() => { addProduct() }} className="flex-initial my-1 h-1/2 primary-button focus:ring-4 focus:outline-none font-medium rounded-lg text-sm px-5 p-2.5 text-center">{t("Add Product")}</button>
+                <div className="flex space-x-1 mt-2">
+                    <input ref={noteRef} onChange={(e) => { setProductNote(e.target.value) }} onKeyUp={(e) => { if (e.key === 'Enter') { handleOnFocus('add') } }} autoComplete='off' onFocus={() => { handleOnFocus('note') }} value={productNote} className="inputBox flex-auto" type="text" placeholder={t("Note")} id="productNote"></input>
+                </div>
             </div>
+            <button ref={addRef} onClick={() => { addProduct() }} className="primary-button h-min">{t("Add Product")}</button>
         </div>
     );
 }
