@@ -54,3 +54,6 @@ select.primary-select {
 .actionIcons button:disabled {
     color: rgb(var(--primary-button-disabled-bg-rgb))
 }
+body .tab button {
+    padding: 7px 16px;
+}

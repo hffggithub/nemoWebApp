@@ -3,7 +3,7 @@ import { useTranslation, withTranslation, Trans } from 'react-i18next';
 import { useSelector } from 'react-redux';
 import { Dropdown } from 'primereact/dropdown';
 
-function ProductSearch({ selectedProduct, setProductToAdd, setFilteredProductList, productList, focusedElement, setFocusedElement }) {
+function ProductSearch({ selectedProduct, setProductToAdd, setFilteredProductList, productList, focusedElement, setFocusedElement, selectCurrentProduct }) {
     const [productName, setProductName] = useState("");
     const [productQty, setProductQty] = useState("");
     const [productUom, setProductUom] = useState("");
@@ -20,6 +20,7 @@ function ProductSearch({ selectedProduct, setProductToAdd, setFilteredProductLis
     const noteRef = useRef(null)
     const addRef = useRef(null)
     const numRef = useRef(null)
+    const [addProductMode, setAddProductMode] = useState(false) // hitting Enter on the add product was firing the enter on the product name, so a hack around it
 
 
 
@@ -87,6 +88,7 @@ function ProductSearch({ selectedProduct, setProductToAdd, setFilteredProductLis
     }
 
     function addProduct() {
+        setAddProductMode(true)
         setProductToAdd({
             productName: productName,
             productNumber: selectedProduct.num,
@@ -104,7 +106,6 @@ function ProductSearch({ selectedProduct, setProductToAdd, setFilteredProductLis
         setProductPrice("")
         setProductNote("")
         setFocusedElement('productNum')
-        filterProducts("")
     }
 
     function handleOnFocus(element) {
@@ -120,6 +121,9 @@ function ProductSearch({ selectedProduct, setProductToAdd, setFilteredProductLis
             case 'qty':
                 console.log('ngsh qty is focused')
                 qtyRef?.current?.focus()
+                if(!productQty) {
+                    setProductQty(1);
+                }
                 break;
             case 'price':
                 console.log('ngsh price is focused')
@@ -138,14 +142,25 @@ function ProductSearch({ selectedProduct, setProductToAdd, setFilteredProductLis
         }
     }, [focusedElement])
 
+    function productNameKeyPress(e) {
+        if (e.key === 'Enter') {  
+            if (!addProductMode) {
+                selectCurrentProduct(); 
+                handleOnFocus('qty') 
+            } else {
+                setAddProductMode(false);
+            }
+        }
+    }
+
     return (
         <div className="flex space-x-1 my-1">
             <div className="flex-auto">
                 <div className="flex space-x-1">
-                    <input ref={numRef} autoFocus onKeyUp={(e) => { if (e.key === 'Enter') { handleOnFocus('qty') } }} onFocus={() => { handleOnFocus('productNum') }} autoComplete='off' onChange={(e) => { filterProducts(e.target.value); setProductName(e.target.value); }} value={productName} className="inputBox grow" type="text" placeholder={t("Product")} id="productSearch"></input>
+                    <input ref={numRef} autoFocus onKeyUp={productNameKeyPress} autoComplete='off' onChange={(e) => { filterProducts(e.target.value); setProductName(e.target.value); }} value={productName} className="inputBox grow" type="text" placeholder={t("Product")} id="productSearch"></input>
                     <input onChange={(e) => { setProductQty(e.target.value) }} onKeyUp={(e) => { if (e.key === 'Enter') { handleOnFocus('price') } }} onFocus={() => { handleOnFocus('qty') }} ref={qtyRef} autoComplete='off' value={productQty} className="inputBox w-32" type="text" placeholder={t("Qty")} id="productQty"></input>
                     <input onChange={(e) => { setProductUom(e.target.value) }} disabled={true} onFocus={() => { handleOnFocus('uom') }} autoComplete='off' value={productUom} className="inputBox w-32" type="text" placeholder={t("UOM")} id="productUom"></input>
-                    <input ref={priceRef} onChange={(e) => { setProductPrice(e.target.value) }} onKeyUp={(e) => { if (e.key === 'Enter') { handleOnFocus('note') } }} onFocus={() => { handleOnFocus('price') }} value={productPrice} list='priceList' className="inputBox w-32" type="text" placeholder={t("Price")} id="productPrice" />
+                    <input ref={priceRef} onChange={(e) => { setProductPrice(e.target.value) }} onKeyUp={(e) => { if (e.key === 'Enter') { handleOnFocus('add') } }} onFocus={() => { handleOnFocus('price') }} value={productPrice} list='priceList' className="inputBox w-32" type="text" placeholder={t("Price")} id="productPrice" />
                     <datalist id='priceList'>
                         {
                             productPrices !== null && productPrices != undefined && productPrices.prices.map((it, i) => {

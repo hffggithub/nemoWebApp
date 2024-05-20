@@ -68,12 +68,11 @@ function Order({ productsOnOrder, setProductsOnOrder }) {
         { headerName: t('ID'), field: "num", width: 120 },
         { headerName: t('Name'), field: "description", flex: 2 },
         { headerName: t('Chinese Name'), field: "chineseName", flex: 2},
-        // { headerName: t('Chinese Name'), field: "customFieldsMap.10.value", width: 190 },
         { headerName: t('Total'), field: "inventory", width: 85, type: 'rightAligned', valueFormatter: params => params.value.toFixed(0) },
         { headerName: t('Available'), valueGetter: (p) => (p.data.inventory - (p.data.qtynotavailable + p.data.qtyallocated)), width: 90, type: 'rightAligned', valueFormatter: params => params.value.toFixed(0) },
         { headerName: t('Price'), field: "price", valueFormatter: params => params.value.toFixed(2), width: 85, type: 'rightAligned'  },
         { headerName: t('UOM'), field: "unitOfMeasure", width: 85 },
-        ...(orderInfo ? [{ headerName: t('Cost'), field: "cost", valueFormatter: params => params.value.toFixed(2), width: 85 }] : [])
+        ...(orderInfo ? [{ headerName: t('Cost'), field: "cost", valueFormatter: params => params.value.toFixed(2), width: 85, type: 'rightAligned' }] : [])
     ]
 
 
@@ -127,7 +126,6 @@ function Order({ productsOnOrder, setProductsOnOrder }) {
                 ...customerState
             }
             let stringShipDate = formatDate(scheduledDate, "mm/dd/yyyy")
-            let stringCreatedDate = formatDate(new Date(), "mm/dd/yyyy")
             if (customerShippingAddress !== null) {
                 customerToSend.shippingAddress = customerShippingAddress
             }
@@ -201,20 +199,13 @@ function Order({ productsOnOrder, setProductsOnOrder }) {
         setOrderAction(action)
     }
 
-    function onProductSelected(event) {
-        var selectedRows = event.api.getSelectedRows();
-        if (selectedRows.length) {
-            setSelectedProduct(selectedRows[0])
-            setFocusedElement('qty')
-            event.api.deselectAll('apiSelectAll')
-        }
-    }
-
     function addProduct(product) {
         setProductsOnOrder([...productsOnOrder, {
             index: productsOnOrder.length,
             ...product
         }])
+        setSelectedProduct(null)
+        setSelectedProductTab(0)
     }
 
     const gridOptions = {
@@ -241,13 +232,42 @@ function Order({ productsOnOrder, setProductsOnOrder }) {
 
     const handleUserKeyPress = useCallback((event) => {
         const { key, keyCode } = event;
-        if ((keyCode === 40 || keyCode === 38) && focusedElement === "productNum") {
-            console.log(productGridRef)
-            const firstCol = productGridRef.current?.columnApi.getAllDisplayedColumns()[0];
-            productGridRef.current?.api.setFocusedCell(0, firstCol)
-            setFocusedElement('grid')
+        if ((keyCode == 38 || keyCode == 40) && focusedElement === "productNum") {
+            moveProductRow(keyCode == 40 ? 1 : -1);
         }
     }, [focusedElement]);
+
+    function resetProductRow() {
+        setProductRow(0);
+    }
+
+    function moveProductRow(increment) {
+        let selectedRows = productGridRef.current?.api.getSelectedNodes();
+        let indexToSelect = 0;
+        if (selectedRows.length) {
+            indexToSelect = selectedRows[0].rowIndex + increment;
+        }
+
+        setProductRow(indexToSelect);
+    }
+
+    function setProductRow(index) {
+        productGridRef.current?.api.forEachNode((rowNode) => {
+            if (rowNode.rowIndex == index) {
+              rowNode.setSelected(true, true);
+            }
+        });
+        productGridRef.current?.api.ensureIndexVisible(index);
+    }
+
+    function selectCurrentProduct() {
+        var selectedRows = productGridRef.current?.api.getSelectedRows();
+        if (selectedRows.length) {
+            setSelectedProduct(selectedRows[0])
+            setSelectedProductTab(1)
+            setFocusedElement('qty')
+        }
+    }
 
     useEffect(() => {
         window.addEventListener("keydown", handleUserKeyPress);
@@ -282,39 +302,47 @@ function Order({ productsOnOrder, setProductsOnOrder }) {
 
     return (
         <>
-            <div className="w-full h-full">
-                <div className='flex space-x-1 items-end'>
-                    <div className="flex-initial w-1/2 h-1/4">
-                        <ProductSearch focusedElement={focusedElement} setFocusedElement={setFocusedElement} selectedProduct={selectedProduct} setProductToAdd={addProduct} setFilteredProductList={setFilteredProductList} productList={productList} />
-                        <div className='tab flex flex-row rounded-t-lg'>
-                            <button id='productTab' className={selectedProductTab === 0 ? 'tablinks active' : 'tablinks'} onClick={() => { setSelectedProductTab(0) }}>{t('Product')}</button>
-                            <button id='productHistoryTab' disabled={selectedProduct === null} className={selectedProductTab === 1 ? 'tablinks active' : 'tablinks'} onClick={() => { setSelectedProductTab(1) }}>{t('Product History')}</button>
-                        </div>
+            <div className="w-full h-full flex flex-col">
+                <div className='flex space-x-1 items-end text-sm'>
+                    <div className="flex-initial w-1/2">
+                        <ProductSearch focusedElement={focusedElement} setFocusedElement={setFocusedElement} selectedProduct={selectedProduct} setProductToAdd={addProduct} setFilteredProductList={setFilteredProductList} productList={productList} selectCurrentProduct={selectCurrentProduct} />
                     </div>
-                    <div className="flex-initial w-1/2 h-1/4">
+                    <div className="flex-initial w-1/2">
                         <div className='flex flex-col'>
                             <div>
                                 <CustomerInfo customer={customerState} setCustomerShippingAddress={setCustomerShippingAddress} showCustomerAddress={true} />
                             </div>
-                            <div className='flex flex-row justify-items-start mx-2'>
-                                <div className='flex flex-auto'>
-                                    <span className='self-center'>{t('Payment Term')}:</span>
-                                    <select value={selectedPaymentTerm} onChange={(e) => { setSelectedPaymentTerm(e.target.value) }} className='flex-auto border rounded-lg py-1 mx-1' id='paytermSelect'>
+                            <div className='grid grid-cols-2 mx-2 mt-2 gap-y-2 gap-x-1'>
+                                <div className='flex'>
+                                    <span className='text-right mr-3 w-1/3 self-center'>{t('Payment Term')}:</span>
+                                    <select value={selectedPaymentTerm} onChange={(e) => { setSelectedPaymentTerm(e.target.value) }} className='flex-auto border rounded-lg py-1 px-3 mx-1' id='paytermSelect'>
                                         {paymentTerms.map((it, i) => {
                                             return (<option key={i} value={i}>{it.name}</option>)
                                         })
                                         }
                                     </select>
                                 </div>
-                                <div className='flex flex-auto'>
-                                    <span className='self-center'>{t('Scheduled Shipment')}:</span>
+                                <div className='flex'>
+                                    <span className='text-right mr-3 w-1/3 self-center'>{t('Scheduled Shipment')}:</span>
                                     <input id='scheduledShipment' onChange={(e) => { setScheduledDate(transformDateFromDatePicker(e.target.value)) }} className='flex-auto w-32 border rounded-lg py-1 mx-1' value={formatDate(scheduledDate, 'yyyy-mm-dd')} min={formatDate(new Date(), 'yyyy-mm-dd')} type='date'></input>
                                 </div>
-                                <div className='flex flex-auto'>
-                                    <input id='orderNote' value={orderNote} onChange={(e) => { setOrderNote(e.target.value) }} placeholder={t('Order Note')} className='flex-auto w-full border rounded-lg py-1 px-2 mx-1' type='text'></input>
+                                <div className='flex col-span-2'>
+                                    <span className="text-right mr-3 w-1/6 self-center">{t('Order Note')}:</span>
+                                    <input id='orderNote' value={orderNote} onChange={(e) => { setOrderNote(e.target.value) }} placeholder={t('Order Note')} className='flex-auto border rounded-lg py-1 px-2 mx-1' type='text'></input>
                                 </div>
                             </div>
                         </div>
+                    </div>
+                </div>
+                <div className='flex w-full space-x-1'>
+                    <div className="flex-initial w-1/2">
+                        <div className='tab flex flex-row rounded-t-lg text-sm'>
+                            <button id='productTab' className={selectedProductTab === 0 ? 'tablinks active' : 'tablinks'} onClick={() => { setSelectedProductTab(0) }}>{t('Product')}</button>
+                            <button id='productHistoryTab' disabled={selectedProduct === null} className={selectedProductTab === 1 ? 'tablinks active' : 'tablinks'} onClick={() => { setSelectedProductTab(1) }}>{t('Product History')}</button>
+                        </div>
+                    </div>
+                    <div className="flex-initial w-1/2 text-sm items-end flex justify-center">
+                        <h1 className='self-center'>{t('Order Summary')}</h1>
                     </div>
                 </div>
                 <div className='flex h-5/6 w-full space-x-1'>
@@ -323,11 +351,12 @@ function Order({ productsOnOrder, setProductsOnOrder }) {
                             <AgGridReact
                                 onGridReady={onGridReady}
                                 ref={productGridRef}
-                                onRowSelected={onProductSelected}
+                                onRowClicked={selectCurrentProduct}
                                 gridOptions={gridOptions}
                                 rowSelection="single"
                                 columnDefs={columnDefs}
-                                rowData={filteredProductList}>
+                                rowData={filteredProductList}
+                                onRowDataUpdated={resetProductRow}>
                             </AgGridReact>
                         </div> }
                         {(selectedProductTab === 1 && selectedProduct !== null) && <ProductHistory selectedProduct={selectedProduct} />}
@@ -336,7 +365,7 @@ function Order({ productsOnOrder, setProductsOnOrder }) {
                         <div className='flex-initial w-full h-full' >
                             <OrderSummary productList={productsOnOrder} setProductList={setProductsOnOrder} showRemoveButton={true} orderInfo={orderInfo} />
                         </div>
-                        <div className='flex flex-initial w-full h-15 space-x-2'>
+                        <div className='flex flex-initial w-full h-15 space-x-2 justify-end'>
                             <input type="checkbox" id="orderInfo" name="orderInfo" checked={orderInfo} onChange={() => { setOrderInfo(!orderInfo) }}></input>
                             <label htmlFor="orderInfo">{t('Order information')}</label>
                         </div>

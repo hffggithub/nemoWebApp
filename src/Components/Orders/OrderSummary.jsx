@@ -154,28 +154,38 @@ function OrderSummary({ productList, setProductList, showRemoveButton, orderInfo
     return (
         <div className="h-full w-full">
             <div className='flex-initial ag-theme-quartz w-full h-5/6'>
-                {showRemoveButton && <h1 className=' self-center'>{t('Order Summary')}</h1>}
                 <AgGridReact
                     gridOptions={gridOptions}
                     columnDefs={columnDefsSumary}
                     rowData={productList}>
                 </AgGridReact>
             </div>
-            <div className='w-full h-1/6 py-4 text-right'>
-                {orderInfo && (<>
-                    <span>{t('Gross Weight')}: {grossWeight.toFixed(2)}</span>
-                    <br></br>
-                    <span>{t('Net Weight')}: {netWeight.toFixed(2)}</span>
-                    <br></br>
-                    <span>{t('Margin')}: {margin.toFixed(2)}</span>
-                    <br></br>
-                </>)}
-                <span>{t('Sub total')}: {subTotal.toFixed(2)}</span>
-                <br></br>
-                <span>{t('Tax')}: {tax.toFixed(2)}</span>
-                <br></br>
-                <span>{t('Total')}: {total.toFixed(2)}</span>
-                <br></br>
+            <div className='w-full h-1/6 py-4 text-right grid grid-cols-4'>
+                <div className='col-span-2'></div>
+                <div class="grid grid-cols-1 gap-x-4"> 
+                    {orderInfo && (<>
+                        <span className="flex">
+                            <span className='text-right mr-3 w-1/2'>{t('Gross Weight')}:</span><span className='text-right grow'>{grossWeight.toFixed(2)}</span>
+                        </span>
+                        <span className="flex">
+                            <span className='text-right mr-3 w-1/2'>{t('Net Weight')}:</span><span className='text-right grow'>{netWeight.toFixed(2)}</span>
+                        </span>
+                        <span className="flex">
+                            <span className='text-right mr-3 w-1/2'>{t('Margin')}:</span><span className='text-right grow'>{margin.toFixed(2)}</span>
+                        </span>
+                    </>)}
+                </div>
+                <div class="grid grid-cols-1 text-right">
+                    <span className="flex">
+                        <span className='text-right mr-3 w-1/2'>{t('Sub total')}:</span><span className='text-right grow'>{subTotal.toFixed(2)}</span>
+                    </span>
+                    <span className="flex">
+                        <span className='text-right mr-3 w-1/2'>{t('Tax')}:</span><span className='text-right grow'>{tax.toFixed(2)}</span>
+                    </span>
+                    <span className="flex">
+                        <span className='text-right mr-3 w-1/2'>{t('Total')}:</span><span className='text-right grow'>{total.toFixed(2)}</span>
+                    </span>
+                </div>
             </div>
         </div>
     );

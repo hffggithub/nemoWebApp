@@ -117,18 +117,8 @@ function Customer() {
     }
 
     function onCustomerSelected(event) {
-        if (!event.node.isSelected()) {
-            return;
-        }
-
-        console.log(event.data)
         setAuxSelectedCustomer(event.data)
         setShouldFetchOrders(true)
-        // dispatch(
-        //     setSelectedCustomer(
-        //         event.data
-        //     )
-        // )
     }
 
     function handleOrderLookupCheckbox() {
@@ -156,7 +146,7 @@ function Customer() {
                 >
                     <AgGridReact
                         rowSelection="single"
-                        onRowSelected={onCustomerSelected}
+                        onRowClicked={onCustomerSelected}
                         columnDefs={columnDefs}
                         rowData={filteredCustomerList}>
                     </AgGridReact>

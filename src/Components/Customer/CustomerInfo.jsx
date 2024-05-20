@@ -46,71 +46,31 @@ function CustomerInfo({ customer, setCustomerShippingAddress, showCustomerAddres
     return (
         <>
             <div className="w-full h-full p-1 px-3 flex flex-col">
-                <div className="flex flex-initial flex-row">
-                    <h1 className="flex-auto self-center text-center">{t('Customer info')}:</h1>
-                </div>
-                <div className="flex flex-initial flex-row">
-                    <div className="flex flex-wrap justify-evenly space-x-1">
-                        <span className="flex-auto">{t('Id')}: {customer.number}</span>
-                        <span className="flex-auto">{t('Name')}: {customer.name}</span>
-                        <span className="flex-auto">{t('Contact')}: {customer.contactName}</span>
-                        <span className="flex-auto">{t('Phone Number')}: {customer.contactNumber}</span>
+                <div className="flex-initial">
+                    <div className="grid grid-cols-2 gap-y-2">
+                        <div className="flex flex-initial flex-row center col-span-2">
+                            <h1 className="flex-auto self-center text-center">[{customer.number}] {customer.name}</h1>
+                            <button onClick={() => { dispatch(clearSelectedCustomer()) }} className="primary-button rounded-lg p-1">{t('Change')}</button>
+                        </div>
+                        <span className="flex">
+                            <span className="text-right mr-3 w-1/3 self-center">{t('Contact')}:</span><span className="">{customer.contactName}</span>
+                        </span>
+                        <span className="flex">
+                            <span className="text-right mr-3 w-1/3 self-center">{t('Phone Number')}:</span><span className="">{customer.contactNumber}</span>
+                        </span>
+                        <span className="flex col-span-2 align-middle">
+                            <span className="text-right mr-3 w-1/6 self-center">{t('Shipping Address')}:</span>
+                            <span className="flex-grow">
+                                <select onChange={(e) => { changeCustomerAddress(e.target.value) }} className="flex-auto w-full border rounded-lg py-1 px-3" id="addressSelect" defaultValue={customer.shippingAddress}>
+                                    {customerAddresses.map((it, i) => {
+                                        return (<option key={i} value={i}>{`${it.street}, ${it.city}, ${it.state}, ${it.country}, ${it.zip}`}</option>)
+                                    })}
+                                </select>
+                            </span>
+                        </span>
                     </div>
-                    <div className="flex flex-initial px-1">
-                        <button onClick={() => { dispatch(clearSelectedCustomer()) }} className="primary-button rounded-lg p-1 text-center">{t('Change')}</button>
-                    </div>
-                </div>
-                <div className="flex flex-initial flex-row">
-                    <h1 className="flex-auto self-center text-center">{t('Shipping Address')}:</h1>
-                </div>
-                <div className="flex flex-initial flex-row">
-                    <select onChange={(e) => { changeCustomerAddress(e.target.value) }} className="flex-auto w-full border rounded-lg py-1" id="addressSelect" defaultValue={customer.shippingAddress}>
-                        {customerAddresses.map((it, i) => {
-                            return (<option key={i} value={i}>{`${it.street}, ${it.city}, ${it.state}, ${it.country}, ${it.zip}`}</option>)
-                        })}
-                    </select>
                 </div>
             </div>
-            {/* <div className="w-full h-full p-1 px-3" >
-                <div className="flex items-center">
-                    <h1 className="flex-auto self-center text-center">{t('Customer info')}:</h1>
-                </div>
-                <div className="flex flex-wrap justify-evenly space-x-1">
-                    <span className="flex-auto">{t('Id')}: {customer.number}</span>
-                    <span className="flex-auto">{t('Name')}: {customer.name}</span>
-                    <span className="flex-auto">{t('Contact')}: {customer.contactName}</span>
-                    <span className="flex-auto">{t('Phone Number')}: {customer.contactNumber}</span>
-                </div>
-                <div>
-                    
-                <button onClick={() => { dispatch(clearSelectedCustomer()) }} className="primary-button rounded-lg p-1 text-center">{t('Change')}</button>
-                </div>
-                {showCustomerAddress &&
-
-                    <div className="flex flex-initial space-y-1 flex-col">
-                        <span className="flex-auto  self-center text-center">{t('Shipping Address')}:</span>
-                        <div className="flex flex-initial space-x-1">
-                            <select onChange={(e) => { changeCustomerAddress(e.target.value) }} className="flex-auto w-full border rounded-lg py-1" id="addressSelect" defaultValue={customer.shippingAddress}>
-                                {customerAddresses.map((it, i) => {
-                                    return (<option key={i} value={i}>{`${it.street}, ${it.city}, ${it.state}, ${it.country}, ${it.zip}`}</option>)
-                                })}
-                            </select>
-                        </div>
-                        {modifyAddress && <>
-
-                            <div className="flex space-x-1">
-                                <input onChange={(e) => { setStreet(e.target.value) }} value={street} className="border rounded-lg p-1 flex-auto" type="text" placeholder={t("Street")} id="address"></input>
-                                <input onChange={(e) => { setCity(e.target.value) }} value={city} className="border rounded-lg p-1 flex-auto" type="text" placeholder={t("City")} id="city"></input>
-                            </div>
-                            <div className="flex space-x-1">
-                                <input onChange={(e) => { setState(e.target.value) }} value={state} className="border rounded-lg p-1 flex-auto" type="text" placeholder={t("State")} id="state"></input>
-                                <input onChange={(e) => { setCountry(e.target.value) }} value={country} className="border rounded-lg p-1 flex-auto" type="text" placeholder={t("Country")} id="country"></input>
-                                <input onChange={(e) => { setZip(e.target.value) }} value={zip} className="border rounded-lg p-1 flex-auto" type="text" placeholder={t("ZIP")} id="zip"></input>
-                            </div>
-                        </>}
-                    </div>
-                }
-            </div> */}
         </>
     )
 }
