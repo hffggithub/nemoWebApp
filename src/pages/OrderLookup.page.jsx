@@ -15,6 +15,8 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faClone } from "@fortawesome/free-solid-svg-icons";
 import { faPenToSquare } from "@fortawesome/free-solid-svg-icons";
 import { addToDate } from '../utils/timeUtils';
+import { setOrderInContext } from '../slices/orderSlice';
+import { consolidateLineItemsData } from '../utils/orderUtils';
 
 
 function OrderLookup({ setProductsOnOrder }) {
@@ -48,54 +50,25 @@ function OrderLookup({ setProductsOnOrder }) {
     const ActionButtons = props => {
         return (<>
             <span class="actionIcons">
-                <button onClick={() => { mergeForClone(props.value.lineItems, props.value.customerNumber); dispatch(returnHome()) }} disabled={props.value.statusId !== 10 && props.value.statusId !== 20} title={t('Modify')}><FontAwesomeIcon icon={faPenToSquare} /></button>
+                <button onClick={() => { setOrderToModify(props.value.lineItems, props.value.customerNumber, props.value); dispatch(returnHome()) }} disabled={props.value.statusId !== 10 && props.value.statusId !== 20} title={t('Modify')}><FontAwesomeIcon icon={faPenToSquare} /></button>
                 <button onClick={() => { mergeForClone(props.value.lineItems, props.value.customerNumber); dispatch(returnHome()) }} title={t('Clone')}><FontAwesomeIcon icon={faClone} /></button>
             </span>
         </>)
     }
 
     function showViewOrderItems(items) {
-        const soItems = items.map((it, index) => {
-            const productInCache = productsCache.find((prod) => {
-                return it.productNumber === prod.num
-            })
-            console.log(productInCache)
-            return ({
-                index: index,
-                productName: productInCache.description,
-                productNumber: productInCache.num,
-                chineseName: productInCache.chineseName,
-                quantity: it.quantity,
-                uom: productInCache.unitOfMeasure,
-                price: it.price,
-                note: it.note,
-                weight: productInCache.weight,
-                cost: productInCache.cost,
-            })
-        })
+        const soItems = consolidateLineItemsData(items, productsCache)
 
         setAuxList(soItems)
     }
 
+    function setOrderToModify(items, customerNumber, order) {
+        dispatch(setOrderInContext(order))
+        mergeForClone(items, customerNumber)
+    }
+
     function mergeForClone(items, customerNumber) {
-        const soItems = items.map((it, index) => {
-            const productInCache = productsCache.find((prod) => {
-                return it.productNumber === prod.num
-            })
-            console.log(productInCache)
-            return ({
-                index: index,
-                productName: productInCache?.description ?? it.productName,
-                productNumber: productInCache?.num ?? it.productNumber,
-                chineseName: productInCache?.chineseName ?? '',
-                quantity: it.quantity,
-                uom: productInCache?.unitOfMeasure ?? it.uom,
-                price: it.price,
-                note: it.note,
-                weight: productInCache?.weight ?? 0.0,
-                cost: productInCache.cost ?? 0.0,
-            })
-        })
+        const soItems = consolidateLineItemsData(items, productsCache)
 
         const customer = customerList.find((it) => {
             return it.number === customerNumber

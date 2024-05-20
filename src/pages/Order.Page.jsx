@@ -13,6 +13,9 @@ import 'ag-grid-community/styles//ag-theme-quartz.css';
 import { useLocalStorage } from "@uidotdev/usehooks";
 import { fetchCustomers, fetchProducts, fetchPriceTiers } from '../slices/cacheSlice.js';
 import ProductHistory from '../Components/Product/ProductHistory.jsx';
+import { clearOrderInContext } from '../slices/orderSlice.js';
+import { consolidateLineItemsData } from '../utils/orderUtils.js';
+import { getDateWithoutTimezone } from '../utils/timeUtils.js';
 
 function Order({ productsOnOrder, setProductsOnOrder }) {
     const [filteredProductList, setFilteredProductList] = useState([])
@@ -35,6 +38,7 @@ function Order({ productsOnOrder, setProductsOnOrder }) {
     const [selectedPaymentTerm, setSelectedPaymentTerm] = useState(0)
     const subclassState = useSelector(state => state.subclass.value)
     const [selectedProductTab, setSelectedProductTab] = useState(0)
+    const orderInContextState = useSelector(state => state.order.orderInContext)
 
     const [orderNote, setOrderNote] = useState("");
 
@@ -63,6 +67,13 @@ function Order({ productsOnOrder, setProductsOnOrder }) {
             return x.locationgroupid === dc.id
         }))
     }, [productList])
+
+    useEffect(() => {
+        if(orderInContextState !== null) {
+            const lineItems = consolidateLineItemsData(orderInContextState.lineItems, productList)
+            setProductsOnOrder(lineItems)
+        }
+    }, [orderInContextState])
 
     const columnDefs = [
         { headerName: t('ID'), field: "num", width: 120 },
@@ -126,6 +137,8 @@ function Order({ productsOnOrder, setProductsOnOrder }) {
                 ...customerState
             }
             let stringShipDate = formatDate(scheduledDate, "mm/dd/yyyy")
+            // let createdDate = orderInContextState !== null ? new Date(orderInContextState.createdDate.split("T")[0]) : new Date();
+            let stringCreatedDate = orderInContextState !== null ?  formatDate(getDateWithoutTimezone(new Date(orderInContextState.createdDate.split("T")[0])), "mm/dd/yyyy") : null
             if (customerShippingAddress !== null) {
                 customerToSend.shippingAddress = customerShippingAddress
             }
@@ -133,11 +146,12 @@ function Order({ productsOnOrder, setProductsOnOrder }) {
                 const response = await axios.post(
                     import.meta.env.VITE_API_BASE_URL + "orders",
                     {
+                        "Number" :  null,
                         "customer": customerToSend,
                         "lineItems": productsOnOrder,
                         "action": orderAction,
                         "shippingTerms": "10",
-                        "createdDate": null,
+                        "createdDate": stringCreatedDate,
                         "scheduledDate": stringShipDate,
                         "fishbowlDC": dc,
                         "fishbowlSubclass": subclassState,
@@ -297,6 +311,7 @@ function Order({ productsOnOrder, setProductsOnOrder }) {
         } else {
             setProductsOnOrder([]);
             dispatch(clearSelectedCustomer());
+            dispatch(clearOrderInContext());
         }
     }
 

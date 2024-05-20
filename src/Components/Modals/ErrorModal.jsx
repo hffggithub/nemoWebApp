@@ -8,6 +8,7 @@ import { useSelector, useDispatch } from 'react-redux'
 import { useLocalStorage } from '@uidotdev/usehooks'
 import { useState, useEffect } from 'react'
 import axios from 'axios'
+import { clearOrderInContext } from '../../slices/orderSlice'
 
 function ErrorModal({ title, body, dismissButtonTitle, dismissAction, setProductsOnOrder, setDistributionCenter, setSubclass }) {
     const { t } = useTranslation();
@@ -52,10 +53,10 @@ function ErrorModal({ title, body, dismissButtonTitle, dismissAction, setProduct
         if(dismissAction === 'returnHome') {
             setProductsOnOrder([])
             dispatch(clearSelectedCustomer())
+            dispatch(clearOrderInContext());
         }
         if(dismissAction === 'openOrder') {
-            dispatch(returnHome())
-            dispatch(clearSelectedCustomer())
+            dispatch(toScreen('newOrder'))
         }
     }
 
@@ -68,12 +69,28 @@ function ErrorModal({ title, body, dismissButtonTitle, dismissAction, setProduct
         if(dismissAction === 'returnHome' || dismissAction === 'unsavedOrder') {
             setProductsOnOrder([])
             dispatch(clearSelectedCustomer())
+            dispatch(clearOrderInContext())
         }
         
         if(dismissAction === 'openOrder') {
+            dispatch(clearOrderInContext())
             dispatch(toScreen('newOrder'))
         }
 
+    }
+
+    function noActionDismiss() {
+        dispatch(hideError())
+        if(dismissAction === 'returnHome') {
+            setProductsOnOrder([])
+            dispatch(clearSelectedCustomer())
+            dispatch(clearOrderInContext());
+        }
+        if(dismissAction === 'openOrder') {
+            dispatch(clearSelectedCustomer())
+            dispatch(clearOrderInContext())
+            dispatch(returnHome())
+        }
     }
 
     function shouldShowDeclineButton() {
@@ -95,7 +112,7 @@ function ErrorModal({ title, body, dismissButtonTitle, dismissAction, setProduct
                             <h3 className="text-xl">
                                 {title}
                             </h3>
-                            <button type="button" onClick={() => { if(shouldShowDeclineButton()) {dismissDecline()} else {dismissConfirm()} }} className="bg-transparent rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center">
+                            <button type="button" onClick={() => { if(shouldShowDeclineButton()) {noActionDismiss()} else {dismissConfirm()} }} className="bg-transparent rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center">
                                 <svg className="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
                                     <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6" />
                                 </svg>

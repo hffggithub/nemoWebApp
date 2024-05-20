@@ -10,6 +10,7 @@ import axios from "../providers/axiosProvider";
 import 'ag-grid-community/styles//ag-grid.css';
 import 'ag-grid-community/styles//ag-theme-quartz.css';
 import { returnHome, toScreen } from "../slices/navSlice";
+import { setOrderInContext } from "../slices/orderSlice";
 
 
 function Customer() {
@@ -21,7 +22,6 @@ function Customer() {
     const [shouldFetchOrders, setShouldFetchOrders] = useState(false)
     const [auxSelectedCustomer, setAuxSelectedCustomer] = useState(null)
     const [token, setToken] = useLocalStorage("token", null)
-    const [openOrder, setOpenOrder] = useState(null)
 
     const columnDefs = [
         { headerName: t("Customer ID"), field: "number", width: 130 },
@@ -50,46 +50,85 @@ function Customer() {
                             headers: { 'Authorization': `Bearer ${token}` }
                         }
                     )
+                    let debtResult = await axios.get(
+                        import.meta.env.VITE_API_BASE_URL + `orders/customerDebt?customerId=${auxSelectedCustomer.id}`,
+                        {
+                            headers: { 'Authorization': `Bearer ${token}` }
+                        }
+                    )
+
+                    const debt = debtResult.data
                     const orders = result.data
 
-                    if (orders) {
-                        if(orders.length > 0) {
-                            dispatch(
-                                showError(
-                                    {
-                                        errorTile: t('Open order'),
-                                        errorBody: t(`There is an open order for this customer, Do you want to create a new one?`),
-                                        errorButton: 'openOrder',
-                                        showError: true,
-                                    }
-                                )
+                    if(debt && auxSelectedCustomer.creditLimit !== 0 && auxSelectedCustomer.creditLimit >= debt.debt) {
+                        dispatch(
+                            showError(
+                                {
+                                    errorTile: t('Credit limit'),
+                                    errorBody: t(`This customer is over its credit limit, please contact your manager.`),
+                                    errorButton: 'ok',
+                                    showError: true,
+                                }
                             )
-                            setOpenOrder(orders[0])
-                            dispatch(setSelectedCustomer(auxSelectedCustomer))
-                            dispatch(toScreen('openOrder'))
+                        )
+                    } else {
+
+                        if (orders) {
+                            if(orders.length > 0) {
+                                dispatch(setOrderInContext(orders[0]))
+                                dispatch(
+                                    showError(
+                                        {
+                                            errorTile: t('Open order'),
+                                            errorBody: t(`There is an open order for this customer, Do you want to create a new one?`),
+                                            errorButton: 'openOrder',
+                                            showError: true,
+                                        }
+                                    )
+                                )
+                                dispatch(setSelectedCustomer(auxSelectedCustomer))
+                                dispatch(toScreen('openOrder'))
+                            } else {
+                                dispatch(setSelectedCustomer(auxSelectedCustomer))
+                            }
+                            // setOrderList([...orderList, ...orders])
+                            // setFilteredList([...orders])
                         } else {
                             dispatch(setSelectedCustomer(auxSelectedCustomer))
                         }
-                        // setOrderList([...orderList, ...orders])
-                        // setFilteredList([...orders])
-                    } else {
-                        dispatch(setSelectedCustomer(auxSelectedCustomer))
                     }
                     setShouldFetchOrders(false)
-                    console.log(orders)
                 } catch (ex) {
                     console.log("axios error ")
                     console.log(ex)
                 }
             }
         }
-        if (token !== null && shouldFetchOrders && auxSelectedCustomer !== null && !orderLookup) {
-            fetchData()
-        } else if(auxSelectedCustomer !== null && orderLookup) {
-            dispatch(setSelectedCustomer(auxSelectedCustomer))
+        if(shouldHoldSalesForCustomer(auxSelectedCustomer)) {
+            dispatch(
+                showError(
+                    {
+                        errorTile: t('Customer not allowed'),
+                        errorBody: t(`This customer is not allowed to open any new orders, please contact your manager.`),
+                        errorButton: 'ok',
+                        showError: true,
+                    }
+                )
+            )
+            setShouldFetchOrders(false)
+        } else {
+            if (token !== null && shouldFetchOrders && auxSelectedCustomer !== null && !orderLookup) {
+                fetchData()
+            } else if(auxSelectedCustomer !== null && orderLookup) {
+                dispatch(setSelectedCustomer(auxSelectedCustomer))
+            }
         }
 
-    }, [token, shouldFetchOrders, setShouldFetchOrders, auxSelectedCustomer, setAuxSelectedCustomer, dispatch, setSelectedCustomer, openOrder, setOpenOrder])
+    }, [token, shouldFetchOrders, setShouldFetchOrders, auxSelectedCustomer, setAuxSelectedCustomer, dispatch, setSelectedCustomer, setOrderInContext])
+
+    function shouldHoldSalesForCustomer(customer) {
+        return (customer.statusId === 50 || customer.statusId === 30)
+    }
 
     function filterCustomers(filter) {
         const lowerCaseFilter = filter.toLowerCase()
