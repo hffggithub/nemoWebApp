@@ -14,6 +14,7 @@ function ProductSearch({ selectedProduct, setProductToAdd, setFilteredProductLis
     const priceTiers = useSelector(state => state.cache.priceTiers)
     const catchWeight = useRef(1.0)
     const [productPrices, setProductPrices] = useState(null)
+    const [notePlaceHolder, setNotePlaceHolder] = useState(t('Note'))
 
     const qtyRef = useRef(null)
     const priceRef = useRef(null)
@@ -38,7 +39,9 @@ function ProductSearch({ selectedProduct, setProductToAdd, setFilteredProductLis
                     catchWeight.current = numberCatchWeight
                 }
                 let floatProductQty = parseFloat(productQty);
-                setProductNote(`Grab ${isNaN(floatProductQty) ? 0.0 : floatProductQty } ${floatProductQty === 1.0 ? 'case' : 'cases' }.`)
+                if(!isNaN(floatProductQty)) {
+                    setProductNote(`Grab ${isNaN(floatProductQty) ? 0.0 : floatProductQty } ${floatProductQty === 1.0 ? 'case' : 'cases' }.`)
+                }
                 setProductUom("Cs")
             } else {
                 setProductNote("")
@@ -155,7 +158,7 @@ function ProductSearch({ selectedProduct, setProductToAdd, setFilteredProductLis
                     </datalist>
                 </div>
                 <div className="flex space-x-1 mt-2">
-                    <input ref={noteRef} onChange={(e) => { setProductNote(e.target.value) }} onKeyUp={(e) => { if (e.key === 'Enter') { handleOnFocus('add') } }} autoComplete='off' onFocus={() => { handleOnFocus('note') }} value={productNote} className="inputBox flex-auto" type="text" placeholder={t("Note")} id="productNote"></input>
+                    <input ref={noteRef} onChange={(e) => { setProductNote(e.target.value) }} onKeyUp={(e) => { if (e.key === 'Enter') { handleOnFocus('add') } }} autoComplete='off' onFocus={() => { handleOnFocus('note') }} value={productNote} className="inputBox flex-auto" type="text" placeholder={notePlaceHolder} id="productNote"></input>
                 </div>
             </div>
             <button ref={addRef} onClick={() => { addProduct() }} className="primary-button h-min">{t("Add Product")}</button>

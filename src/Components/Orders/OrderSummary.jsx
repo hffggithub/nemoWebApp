@@ -3,6 +3,8 @@ import 'ag-grid-community/styles//ag-grid.css';
 import 'ag-grid-community/styles//ag-theme-quartz.css';
 import { useTranslation, withTranslation, Trans } from 'react-i18next';
 import { useEffect, useState } from 'react';
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faXmark } from "@fortawesome/free-solid-svg-icons";
 
 const gridOptions = {
     autoSizeStrategy: {
@@ -69,7 +71,10 @@ function OrderSummary({ productList, setProductList, showRemoveButton, orderInfo
 
     const DeleteButton = props => {
         return (<>
-            <button onClick={() => { removeItem(props.value) }} className='primary-button focus:ring-4 focus:outline-none font-medium rounded-lg px-1'>{t('Remove')}</button>
+        
+        <span class="actionIcons">
+                <button onClick={() => { removeItem(props.value)}} title={t('Remove')}><FontAwesomeIcon icon={faXmark} /></button>
+         </span>
         </>)
     }
 
@@ -142,14 +147,15 @@ function OrderSummary({ productList, setProductList, showRemoveButton, orderInfo
 
     const columnDefsSumary = [
         { headerName: t('ID'), field: "productNumber", width: 100 },
-        { headerName: t('Name'), field: "productName" },
-        { headerName: t('Chinese Name'), field: "chineseName", width: 150 },
-        { headerName: t('Quantity'), valueGetter: (p) => p.data, cellRenderer: QuantityTextField, width: 100  },
-        { headerName: t('UOM'), field: "uom", width: 100 },
-        { headerName: t('Note'), field: "note" },
-        { headerName: t('Price'), valueGetter: (p) => p.data, cellRenderer: PriceTextField, width: 100   },
-        ...(orderInfo ? [{ headerName: t('Cost'), field: "cost", valueFormatter: params => params.value.toFixed(2) , width: 100  }] : []),
-        ...(showRemoveButton ? [{ headerName: t('Remove'), field: "productNumber", cellRenderer: DeleteButton }] : []),
+        { headerName: t('Name'), field: "productName", flex: 2 },
+        { headerName: t('Chinese Name'), field: "chineseName", flex: 2},
+        { headerName: t('Quantity'), valueGetter: (p) => p.data, cellRenderer: QuantityTextField, width: 90  },
+        { headerName: t('UOM'), field: "uom", width: 70 },
+        { headerName: t('Note'), field: "note", flex: 2 },
+        { headerName: t('Unit Price'), valueGetter: (p) => p.data, cellRenderer: PriceTextField,  type: 'rightAligned' , width: 100   },
+        { headerName: t('Total Price'), valueGetter: (p) => (p.data.price * p.data.quantity).toFixed(2),  type: 'rightAligned', width: 100   },
+        ...(orderInfo ? [{ headerName: t('Cost'), field: "cost", valueFormatter: params => params.value.toFixed(2),  type: 'rightAligned' , width: 100 }] : []),
+        ...(showRemoveButton ? [{ headerName: '', field: "productNumber", cellRenderer: DeleteButton,  width: 60, resizable: false  }] : []),
     ]
     return (
         <div className="h-full w-full">

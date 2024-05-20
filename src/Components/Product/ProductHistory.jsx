@@ -23,13 +23,14 @@ function ProductHistory({selectedProduct}) {
     const [endDate, setEndDate] = useState(dateInFuture(1))
 
     const columnDefs = [
-        { headerName: t('ID'), field: "productNumber", width: 100 },
-        { headerName: t('Name'), field: "productName", width: 190 },
-        { headerName: t('Chinese Name'), field: "chineseName", width: 190 },
+        { headerName: t('Date'),field: "orderCreatedDate", valueFormatter: params => params.value.split('T')[0] , width: 105 },
+        { headerName: t('Name'), field: "productName", flex: 1 },
+        { headerName: t('Chinese Name'), field: "chineseName", flex: 1},
         // { headerName: t('Chinese Name'), field: "customFieldsMap.10.value", width: 190 },
-        { headerName: t('Quantity'), field: "quantity", width: 100 },
-        { headerName: t('Price'), field: "price", valueFormatter: params => params.value.toFixed(2), width: 85  },
-        { headerName: t('UOM'), field: "uom", width: 85 },
+        { headerName: t('Quantity'), field: "quantity", width: 90, type: 'rightAligned' },
+        { headerName: t('Unit Price'), field: "price", valueFormatter: params => params.value.toFixed(2), width: 100,  type: 'rightAligned'  },
+        { headerName: t('Total Price'), valueGetter: (p) => (p.data.price * p.data.quantity).toFixed(2),  type: 'rightAligned', width: 100   },
+        { headerName: t('UOM'), field: "uom", width: 70 },
         { headerName: t('Note'), field: "note", width: 190},
     ]
 

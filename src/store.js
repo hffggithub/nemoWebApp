@@ -5,6 +5,7 @@ import cacheReducer from './slices/cacheSlice'
 import distributionCenterReducer from './slices/distributionCenterSlice'
 import navReducer from './slices/navSlice'
 import subclassReduce from './slices/subclassSlice'
+import orderReducer from './slices/orderSlice'
 
 const store = configureStore({
   reducer: {
@@ -14,6 +15,7 @@ const store = configureStore({
     distributionCenter: distributionCenterReducer,
     nav: navReducer,
     subclass: subclassReduce,
+    order: orderReducer,
   }
 });
 
