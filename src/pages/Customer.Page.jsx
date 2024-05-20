@@ -127,7 +127,10 @@ function Customer() {
     }, [token, shouldFetchOrders, setShouldFetchOrders, auxSelectedCustomer, setAuxSelectedCustomer, dispatch, setSelectedCustomer, setOrderInContext])
 
     function shouldHoldSalesForCustomer(customer) {
-        return (customer.statusId === 50 || customer.statusId === 30)
+        if(customer) {
+            return (customer.statusId === 50 || customer.statusId === 30)
+        }
+        return false
     }
 
     function filterCustomers(filter) {
