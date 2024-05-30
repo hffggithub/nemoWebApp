@@ -16,12 +16,16 @@ function ProductSearch({ selectedProduct, setProductToAdd, setFilteredProductLis
     const [productPrices, setProductPrices] = useState(null)
     const [notePlaceHolder, setNotePlaceHolder] = useState(t('Note'))
 
+    const [catchWeightMax, setCatchWeightMax] = useState(null);
+
+    const [cwQty, setCwQty] = useState("");
+
     const qtyRef = useRef(null)
     const priceRef = useRef(null)
     const noteRef = useRef(null)
     const addRef = useRef(null)
     const numRef = useRef(null)
-    const [addProductMode, setAddProductMode] = useState(false) // hitting Enter on the add product was firing the enter on the product name, so a hack around it
+    // const [addProductMode, setAddProductMode] = useState(false) // hitting Enter on the add product was firing the enter on the product name, so a hack around it
 
 
 
@@ -38,6 +42,7 @@ function ProductSearch({ selectedProduct, setProductToAdd, setFilteredProductLis
                 const numberCatchWeight = parseFloat(getMaxCatchWeight(selectedProduct))
                 if (numberCatchWeight) {
                     catchWeight.current = numberCatchWeight
+                    setCatchWeightMax(numberCatchWeight)
                 }
                 let floatProductQty = parseFloat(productQty);
                 if(!isNaN(floatProductQty)) {
@@ -47,10 +52,11 @@ function ProductSearch({ selectedProduct, setProductToAdd, setFilteredProductLis
             } else {
                 setProductNote("")
                 catchWeight.current = 1.0
+                setCatchWeightMax(null)
             }
         }
     }, [selectedProduct, setProductPrices, productPrices, setProductName, setProductUom, setProductPrice, productQty, setProductNote])
-    console.log(selectedProduct)
+
     function filterProducts(inputFilter) {
         const filter = inputFilter.toLowerCase()
         let result = productList.filter(x => x.locationgroupid === dc.id).filter((product) => {
@@ -91,7 +97,7 @@ function ProductSearch({ selectedProduct, setProductToAdd, setFilteredProductLis
     }
 
     function addProduct() {
-        setAddProductMode(true)
+        // setAddProductMode(true)
         setProductToAdd({
             productName: productName,
             productNumber: selectedProduct.num,
@@ -147,12 +153,25 @@ function ProductSearch({ selectedProduct, setProductToAdd, setFilteredProductLis
 
     function productNameKeyPress(e) {
         if (e.key === 'Enter') {  
-            if (!addProductMode) {
+            // if (!addProductMode) {
                 selectCurrentProduct(); 
-                handleOnFocus('qty') 
-            } else {
-                setAddProductMode(false);
-            }
+                // handleOnFocus('qty') 
+            // } else {
+                // setAddProductMode(false);
+            // }
+        }
+    }
+
+    useEffect(() => {
+        calculateCWQty()
+    }, [productQty])
+
+
+
+    function calculateCWQty() {
+        const numQty = parseFloat(productQty);
+        if(!isNaN(numQty)) {
+            setCwQty((numQty * catchWeightMax) + " " + selectedProduct?.unitOfMeasure);
         }
     }
 
@@ -160,10 +179,10 @@ function ProductSearch({ selectedProduct, setProductToAdd, setFilteredProductLis
         <div className="flex space-x-1 my-1">
             <div className="flex-auto">
                 <div className="flex space-x-1">
-                    <input ref={numRef} autoFocus onKeyUp={productNameKeyPress} autoComplete='off' onChange={(e) => { filterProducts(e.target.value); setProductName(e.target.value); }} value={productName} className="inputBox grow" type="text" placeholder={t("Product")} id="productSearch"></input>
+                    <input ref={numRef} autoFocus onFocus={() => {handleOnFocus("productNum")}} onKeyUp={productNameKeyPress} autoComplete='off' onChange={(e) => { filterProducts(e.target.value); setProductName(e.target.value); }} value={productName} className="inputBox grow" type="text" placeholder={t("Product")} id="productSearch"></input>
                     <input onChange={(e) => { setProductQty(e.target.value) }} onKeyUp={(e) => { if (e.key === 'Enter') { handleOnFocus('price') } }} onFocus={() => { handleOnFocus('qty') }} ref={qtyRef} autoComplete='off' value={productQty} className="inputBox w-32" type="text" placeholder={t("Qty")} id="productQty"></input>
                     <input onChange={(e) => { setProductUom(e.target.value) }} disabled={true} onFocus={() => { handleOnFocus('uom') }} autoComplete='off' value={productUom} className="inputBox w-32" type="text" placeholder={t("UOM")} id="productUom"></input>
-                    <input ref={priceRef} onChange={(e) => { setProductPrice(e.target.value) }} onKeyUp={(e) => { if (e.key === 'Enter') { handleOnFocus('add') } }} onFocus={() => { handleOnFocus('price') }} value={productPrice} list='priceList' className="inputBox w-32" type="text" placeholder={t("Price")} id="productPrice" />
+                    <input ref={priceRef} onChange={(e) => { setProductPrice(e.target.value) }} onKeyUp={(e) => { if (e.key === 'Enter') { handleOnFocus('productNum'); addProduct(); } }} onFocus={() => { handleOnFocus('price') }} value={productPrice} list='priceList' className="inputBox w-32" type="text" placeholder={t("Price")} id="productPrice" />
                     <datalist id='priceList'>
                         {
                             productPrices !== null && productPrices != undefined && productPrices.prices.map((it, i) => {
@@ -176,7 +195,10 @@ function ProductSearch({ selectedProduct, setProductToAdd, setFilteredProductLis
                     <input ref={noteRef} onChange={(e) => { setProductNote(e.target.value) }} onKeyUp={(e) => { if (e.key === 'Enter') { handleOnFocus('add') } }} autoComplete='off' onFocus={() => { handleOnFocus('note') }} value={productNote} className="inputBox flex-auto" type="text" placeholder={notePlaceHolder} id="productNote"></input>
                 </div>
             </div>
-            <button ref={addRef} onClick={() => { addProduct() }} className="primary-button h-min">{t("Add Product")}</button>
+            <div className='space-y-2.5 flex-col'>
+                <button ref={addRef} onClick={() => { addProduct() }} className="primary-button h-min">{t("Add Product")}</button>
+                {catchWeightMax && <input disabled={true} autoComplete='off' value={cwQty} className="inputBox w-32" type="text" placeholder={t("CW Qty")} id="cwQty"></input>}
+            </div>
         </div>
     );
 }

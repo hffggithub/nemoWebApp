@@ -16,6 +16,7 @@ function CustomerInfo({ customer, setCustomerShippingAddress, showCustomerAddres
     const [description, setDescription] = useState(customer.shippingAddress.description)
     const [customerAddresses, setCustomerAddresses] = useState(customer.addresses)
     const [modifyAddress, setModifyAddress] = useState(false)
+    const chineseName = customer.chineseName ? "- " + customer.chineseName : customer.number === "TNG-0121" ? "- " + "陈老板娘" : "";
 
     useEffect(() => {
         setCustomerShippingAddress(
@@ -49,7 +50,7 @@ function CustomerInfo({ customer, setCustomerShippingAddress, showCustomerAddres
                 <div className="flex-initial">
                     <div className="grid grid-cols-2 gap-y-2">
                         <div className="flex flex-initial flex-row center col-span-2">
-                            <h1 className="flex-auto self-center text-center">[{customer.number}] {customer.name}</h1>
+                            <h1 className="flex-auto self-center text-center">[{customer.number}] {customer.name} {chineseName}</h1>
                             <button onClick={() => { dispatch(clearSelectedCustomer()) }} className="primary-button rounded-lg p-1">{t('Change')}</button>
                         </div>
                         <span className="flex">
@@ -74,5 +75,6 @@ function CustomerInfo({ customer, setCustomerShippingAddress, showCustomerAddres
         </>
     )
 }
+
 
 export default CustomerInfo;

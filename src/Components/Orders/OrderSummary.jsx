@@ -34,7 +34,7 @@ function OrderSummary({ productList, setProductList, showRemoveButton, orderInfo
 
     function removeItem(itemToRemove) {
         const newProductList = productList.filter(product => {
-            return product.productNumber != itemToRemove
+            return product.index != itemToRemove
         })
         setProductList(newProductList)
     }
@@ -87,7 +87,7 @@ function OrderSummary({ productList, setProductList, showRemoveButton, orderInfo
 
         return(
             <>
-            <input id='itemQty' disabled={!showRemoveButton} value={qty} onBlur={handleBlur} onChange={(e) => {setQty(e.target.value)}}/>
+            <input id='itemQty' className='text-right w-full' disabled={!showRemoveButton} value={qty} onBlur={handleBlur} onChange={(e) => {setQty(e.target.value)}}/>
             </>
         )
     }
@@ -101,7 +101,7 @@ function OrderSummary({ productList, setProductList, showRemoveButton, orderInfo
 
         return(
             <>
-            <input id='itemPrice' disabled={!showRemoveButton} value={price} onBlur={handleBlur} onChange={(e) => {setPrice(e.target.value)}}/>
+            <input id='itemPrice' className='text-right w-full' disabled={!showRemoveButton} value={price.toLocaleString('en-US', {minimumFractionDigits:2})} onBlur={handleBlur} onChange={(e) => {setPrice(e.target.value)}}/>
             </>
         )
     }
@@ -150,12 +150,12 @@ function OrderSummary({ productList, setProductList, showRemoveButton, orderInfo
         { headerName: t('Name'), field: "productName", flex: 2 },
         { headerName: t('Chinese Name'), field: "chineseName", flex: 2},
         { headerName: t('Quantity'), valueGetter: (p) => p.data, cellRenderer: QuantityTextField, width: 90  },
-        { headerName: t('UOM'), field: "uom", width: 70 },
+        { headerName: t('UOM'), field: "uom", width: 80 },
         { headerName: t('Note'), field: "note", flex: 2 },
         { headerName: t('Unit Price'), valueGetter: (p) => p.data, cellRenderer: PriceTextField,  type: 'rightAligned' , width: 100   },
-        { headerName: t('Total Price'), valueGetter: (p) => (p.data.price * p.data.quantity).toFixed(2),  type: 'rightAligned', width: 100   },
-        ...(orderInfo ? [{ headerName: t('Cost'), field: "cost", valueFormatter: params => params.value.toFixed(2),  type: 'rightAligned' , width: 100 }] : []),
-        ...(showRemoveButton ? [{ headerName: '', field: "productNumber", cellRenderer: DeleteButton,  width: 60, resizable: false  }] : []),
+        { headerName: t('Total Price'), valueGetter: (p) => (p.data.price * p.data.quantity).toLocaleString('en-US', {minimumFractionDigits:2}),  type: 'rightAligned', width: 100   },
+        ...(orderInfo ? [{ headerName: t('Cost'), field: "cost", valueFormatter: params => params.value.toLocaleString('en-US', {minimumFractionDigits:2}),  type: 'rightAligned' , width: 100 }] : []),
+        ...(showRemoveButton ? [{ headerName: '', field: "index", cellRenderer: DeleteButton,  width: 60, resizable: false  }] : []),
     ]
     return (
         <div className="h-full w-full">
@@ -171,25 +171,25 @@ function OrderSummary({ productList, setProductList, showRemoveButton, orderInfo
                 <div class="grid grid-cols-1 gap-x-4"> 
                     {orderInfo && (<>
                         <span className="flex">
-                            <span className='text-right mr-3 w-1/2'>{t('Gross Weight')}:</span><span className='text-right grow'>{grossWeight.toFixed(2)}</span>
+                            <span className='text-right mr-3 w-1/2'>{t('Gross Weight')}:</span><span className='text-right grow'>{grossWeight.toLocaleString('en-US', {minimumFractionDigits:2})}</span>
                         </span>
                         <span className="flex">
-                            <span className='text-right mr-3 w-1/2'>{t('Net Weight')}:</span><span className='text-right grow'>{netWeight.toFixed(2)}</span>
+                            <span className='text-right mr-3 w-1/2'>{t('Net Weight')}:</span><span className='text-right grow'>{netWeight.toLocaleString('en-US', {minimumFractionDigits:2})}</span>
                         </span>
                         <span className="flex">
-                            <span className='text-right mr-3 w-1/2'>{t('Margin')}:</span><span className='text-right grow'>{margin.toFixed(2)}</span>
+                            <span className='text-right mr-3 w-1/2'>{t('Margin')}:</span><span className='text-right grow'>{margin.toLocaleString('en-US', {minimumFractionDigits:2})}</span>
                         </span>
                     </>)}
                 </div>
                 <div class="grid grid-cols-1 text-right">
                     <span className="flex">
-                        <span className='text-right mr-3 w-1/2'>{t('Sub total')}:</span><span className='text-right grow'>{subTotal.toFixed(2)}</span>
+                        <span className='text-right mr-3 w-1/2'>{t('Sub total')}:</span><span className='text-right grow'>{subTotal.toLocaleString('en-US', {minimumFractionDigits:2})}</span>
                     </span>
                     <span className="flex">
-                        <span className='text-right mr-3 w-1/2'>{t('Tax')}:</span><span className='text-right grow'>{tax.toFixed(2)}</span>
+                        <span className='text-right mr-3 w-1/2'>{t('Tax')}:</span><span className='text-right grow'>{tax.toLocaleString('en-US', {minimumFractionDigits:2})}</span>
                     </span>
                     <span className="flex">
-                        <span className='text-right mr-3 w-1/2'>{t('Total')}:</span><span className='text-right grow'>{total.toFixed(2)}</span>
+                        <span className='text-right mr-3 w-1/2'>{t('Total')}:</span><span className='text-right grow'>{total.toLocaleString('en-US', {minimumFractionDigits:2})}</span>
                     </span>
                 </div>
             </div>

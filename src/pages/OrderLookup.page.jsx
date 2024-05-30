@@ -221,9 +221,9 @@ function OrderLookup({ setProductsOnOrder }) {
                     <button onClick={() => { setShouldFetchOrders(true) }} className='primary-button'>{t('Search')}</button>
                 </span>
             </div>
-            <div className='flex w-full h-5/6 space-x-1'>
+            <div className='flex flex-col space-y-1 w-full h-5/6'>
                 <div
-                    className="ag-theme-quartz w-2/3 h-full"
+                    className="ag-theme-quartz w-full h-full"
                 >
                     <AgGridReact
                         columnDefs={columnDefs}
@@ -233,7 +233,7 @@ function OrderLookup({ setProductsOnOrder }) {
                     </AgGridReact>
                 </div>
                 <div
-                    className="w-1/3 h-full"
+                    className="w-full h-full"
                 >
                     <OrderSummary productList={auxList} setProductList={setAuxList} showRemoveButton={false} />
                 </div>

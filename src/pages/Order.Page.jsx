@@ -266,12 +266,12 @@ function Order({ productsOnOrder, setProductsOnOrder }) {
     }
 
     function setProductRow(index) {
-        productGridRef.current?.api.forEachNode((rowNode) => {
+        productGridRef.current?.api?.forEachNode((rowNode) => {
             if (rowNode.rowIndex == index) {
               rowNode.setSelected(true, true);
             }
         });
-        productGridRef.current?.api.ensureIndexVisible(index);
+        productGridRef.current?.api?.ensureIndexVisible(index);
     }
 
     function selectCurrentProduct() {
@@ -282,6 +282,14 @@ function Order({ productsOnOrder, setProductsOnOrder }) {
             setFocusedElement('qty')
         }
     }
+
+    useEffect(() => {
+        if(focusedElement === "productNum") {
+            console.log('prod element focused')
+            setSelectedProductTab(0)
+            setFilteredProductList(productList)
+        }
+    }, [focusedElement])
 
     useEffect(() => {
         window.addEventListener("keydown", handleUserKeyPress);
@@ -302,7 +310,7 @@ function Order({ productsOnOrder, setProductsOnOrder }) {
                 showError(
                     {
                         errorTile: t('Changes not saved'),
-                        errorBody: t(`The order has changed that are not saved, Do you want to discard the changes?`),
+                        errorBody: t(`The order has changes that are not saved, Do you want to discard the changes?`),
                         errorButton: t('unsavedOrder'),
                         showError: true,
                     }

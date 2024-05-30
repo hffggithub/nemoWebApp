@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import { useTranslation, withTranslation, Trans } from 'react-i18next';
 import { AgGridReact } from 'ag-grid-react';
 import { useSelector, useDispatch } from 'react-redux';
@@ -22,6 +22,9 @@ function Customer() {
     const [shouldFetchOrders, setShouldFetchOrders] = useState(false)
     const [auxSelectedCustomer, setAuxSelectedCustomer] = useState(null)
     const [token, setToken] = useLocalStorage("token", null)
+    const [focusedElement, setFocusedElement] = useState('search');
+    const [productGridReady, setProductGridReady] = useState(false)
+    const gridRef = useRef();
 
     const columnDefs = [
         { headerName: t("Customer ID"), field: "number", width: 130 },
@@ -50,28 +53,28 @@ function Customer() {
                             headers: { 'Authorization': `Bearer ${token}` }
                         }
                     )
-                    let debtResult = await axios.get(
-                        import.meta.env.VITE_API_BASE_URL + `orders/customerDebt?customerId=${auxSelectedCustomer.id}`,
-                        {
-                            headers: { 'Authorization': `Bearer ${token}` }
-                        }
-                    )
+                    // let debtResult = await axios.get(
+                    //     import.meta.env.VITE_API_BASE_URL + `orders/customerDebt?customerId=${auxSelectedCustomer.id}`,
+                    //     {
+                    //         headers: { 'Authorization': `Bearer ${token}` }
+                    //     }
+                    // )
 
-                    const debt = debtResult.data
+                    // const debt = debtResult.data
                     const orders = result.data
 
-                    if(debt && auxSelectedCustomer.creditLimit !== 0 && auxSelectedCustomer.creditLimit >= debt.debt) {
-                        dispatch(
-                            showError(
-                                {
-                                    errorTile: t('Credit limit'),
-                                    errorBody: t(`This customer is over its credit limit, please contact your manager.`),
-                                    errorButton: 'ok',
-                                    showError: true,
-                                }
-                            )
-                        )
-                    } else {
+                    // if(debt && auxSelectedCustomer.creditLimit !== 0 && auxSelectedCustomer.creditLimit >= debt.debt) {
+                    //     dispatch(
+                    //         showError(
+                    //             {
+                    //                 errorTile: t('Credit limit'),
+                    //                 errorBody: t(`This customer is over its credit limit, please contact your manager.`),
+                    //                 errorButton: 'ok',
+                    //                 showError: true,
+                    //             }
+                    //         )
+                    //     )
+                    // } else {
 
                         if (orders) {
                             if(orders.length > 0) {
@@ -96,7 +99,7 @@ function Customer() {
                         } else {
                             dispatch(setSelectedCustomer(auxSelectedCustomer))
                         }
-                    }
+                    // }
                     setShouldFetchOrders(false)
                 } catch (ex) {
                     console.log("axios error ")
@@ -158,9 +161,12 @@ function Customer() {
         setFilteredCustomerList(result);
     }
 
-    function onCustomerSelected(event) {
-        setAuxSelectedCustomer(event.data)
-        setShouldFetchOrders(true)
+    function onCustomerSelected() {
+        var selectedRows = gridRef.current?.api.getSelectedRows();
+        if (selectedRows.length) {
+            setAuxSelectedCustomer(selectedRows[0])
+            setShouldFetchOrders(true)
+        }
     }
 
     function handleOrderLookupCheckbox() {
@@ -169,12 +175,76 @@ function Customer() {
         console.log('order lookup ' + newValue)
         dispatch(newValue ? toScreen('orderLookup') : returnHome())
     }
+    
+    const onGridReady = useCallback((event) => {
+        setProductGridReady(true)
+    }, [setProductGridReady]);
+
+    
+    const handleUserKeyPress = useCallback((event) => {
+        const { key, keyCode } = event;
+        if ((keyCode == 38 || keyCode == 40) && focusedElement === "search") {
+            moveProductRow(keyCode == 40 ? 1 : -1);
+        }
+    }, [focusedElement]);
+    
+
+    useEffect(() => {
+        window.addEventListener("keydown", handleUserKeyPress);
+        return () => {
+            window.removeEventListener("keydown", handleUserKeyPress);
+        };
+    }, [handleUserKeyPress, focusedElement]);
+
+    function onHandleFocus(item) {
+        switch (item) {
+            case 'search':
+                setFocusedElement(item);
+                break;
+        
+            default:
+                break;
+        }
+
+    }
+
+    
+    function moveProductRow(increment) {
+        let selectedRows = gridRef.current?.api.getSelectedNodes();
+        let indexToSelect = 0;
+        if (selectedRows.length) {
+            indexToSelect = selectedRows[0].rowIndex + increment;
+        }
+
+        setRow(indexToSelect);
+    }
+    
+    function resetRow() {
+        setRow(0);
+    }
+
+    
+    function setRow(index) {
+        gridRef.current?.api.forEachNode((rowNode) => {
+            if (rowNode.rowIndex == index) {
+              rowNode.setSelected(true, true);
+            }
+        });
+        gridRef.current?.api.ensureIndexVisible(index);
+    }
+
+    
+    function searchFieldKeyPress(e) {
+        if (e.key === 'Enter') {  
+                onCustomerSelected(); 
+        }
+    }
 
     return (
         <>
             <div className="w-full h-full">
                 <div className="flex space-x-2 searchBar">
-                    <input onChange={(e) => { filterCustomers(e.target.value) }} type="text" name="filter" id="filter" className="inputBox basis-1/2" placeholder={t('Customer search')} />
+                    <input autoFocus onKeyUp={searchFieldKeyPress} onFocus={() => {onHandleFocus('search')}} autoComplete='off' onChange={(e) => { filterCustomers(e.target.value) }} type="text" name="filter" id="filter"  className="inputBox basis-1/2" placeholder={t('Customer search')} />
                     <div className="basis-1/2 text-right">  
                        <button onClick={() => {dispatch(toScreen('orderLookup'))}} className="primary-button">{t('Order Lookup')}</button>
                     </div>
@@ -187,9 +257,12 @@ function Customer() {
                     className="ag-theme-quartz w-full h-5/6"
                 >
                     <AgGridReact
+                        onGridReady={onGridReady}
+                        ref={gridRef}
                         rowSelection="single"
                         onRowClicked={onCustomerSelected}
                         columnDefs={columnDefs}
+                        onRowDataUpdated={resetRow}
                         rowData={filteredCustomerList}>
                     </AgGridReact>
                 </div>

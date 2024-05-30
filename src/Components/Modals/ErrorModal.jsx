@@ -6,7 +6,7 @@ import { clearDistributionCenter } from '../../slices/distributionCenterSlice'
 import { clearCache } from '../../slices/cacheSlice'
 import { useSelector, useDispatch } from 'react-redux'
 import { useLocalStorage } from '@uidotdev/usehooks'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import axios from 'axios'
 import { clearOrderInContext } from '../../slices/orderSlice'
 
@@ -15,6 +15,11 @@ function ErrorModal({ title, body, dismissButtonTitle, dismissAction, setProduct
     const [token, saveToken] = useLocalStorage("token", null);
     const [tryLogout, setTryLogout] = useState(false);
     const dispatch = useDispatch()
+
+    const [focusedElement, setFocusedElement] = useState("confirm");
+
+    const confirmRef = useRef();
+    const declineRef = useRef();
     
     useEffect(() => {
         const attemptLogout = async () => {
@@ -103,6 +108,56 @@ function ErrorModal({ title, body, dismissButtonTitle, dismissAction, setProduct
         }
     }
 
+    function handleOnFocus(element) {
+        switch (element) {
+            case "confirm":
+                setFocusedElement(element);
+                confirmRef?.current?.focus();
+                break;
+            case "decline":
+                setFocusedElement(element);
+                declineRef?.current?.focus();
+                break;
+
+            default:
+                break;
+        }
+    }
+
+    
+    const handleUserKeyPress = useCallback((event) => {
+        const { key, keyCode } = event;
+
+        console.log(`key pressed on modal ${keyCode}`);
+        if ((keyCode == 37 || keyCode == 39) && (focusedElement === "confirm" || focusedElement === "decline")) {
+            if(declineRef) {
+                moveSelection();
+            }
+        }
+    }, [focusedElement]);
+
+    function moveSelection() {
+        switch(focusedElement) {
+            case "confirm":
+                handleOnFocus("decline");
+                break;
+            case "decline":
+                handleOnFocus("confirm");
+                break;
+
+            default:
+                break;
+        }
+    }
+    
+
+    useEffect(() => {
+        window.addEventListener("keydown", handleUserKeyPress);
+        return () => {
+            window.removeEventListener("keydown", handleUserKeyPress);
+        };
+    }, [handleUserKeyPress, focusedElement]);
+
     return (
         <>
             <div className="flex overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full modal-backdrop">
@@ -126,8 +181,8 @@ function ErrorModal({ title, body, dismissButtonTitle, dismissAction, setProduct
                         </div>
 
                         <div className="flex items-center p-4 md:p-5 border-t rounded-b">
-                            {shouldShowDeclineButton() && <button type="button" onClick={() => { dismissDecline()} } className="primary-button mx-auto uppercase focus:ring-4 focus:outline-none font-medium rounded-lg text-sm px-5 py-2.5 text-center">{t('no')}</button>}
-                            <button type="button" onClick={() => { dismissConfirm()} } className="primary-button mx-auto uppercase focus:ring-4 focus:outline-none font-medium rounded-lg text-sm px-5 py-2.5 text-center">{shouldShowDeclineButton() ? t('yes') : dismissButtonTitle}</button>
+                            {shouldShowDeclineButton() && <button ref={declineRef} onFocus={() => {handleOnFocus("decline")}} type="button" onClick={() => { dismissDecline()} } className="primary-button mx-auto uppercase focus:ring-4 focus:outline-none font-medium rounded-lg text-sm px-5 py-2.5 text-center">{t('no')}</button>}
+                            <button autoFocus ref={confirmRef} onFocus={() => {handleOnFocus("confirm")}} type="button" onClick={() => { dismissConfirm()} } className="primary-button mx-auto uppercase focus:ring-4 focus:outline-none font-medium rounded-lg text-sm px-5 py-2.5 text-center">{shouldShowDeclineButton() ? t('yes') : dismissButtonTitle}</button>
                         </div>
                     </div>
                 </div>
