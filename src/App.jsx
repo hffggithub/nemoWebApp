@@ -8,7 +8,7 @@ import Customer from './pages/Customer.Page.jsx';
 import { useSelector, useDispatch } from 'react-redux'
 import Order from './pages/Order.Page.jsx';
 import OrderLookup from './pages/OrderLookup.page.jsx';
-import { fetchCustomers, fetchProducts, fetchPriceTiers, fetchPaymentTerms } from './slices/cacheSlice.js';
+import { fetchCustomers, fetchProducts, fetchPriceTiers, fetchPaymentTerms, fetchPriceTiersByCategory } from './slices/cacheSlice.js';
 import { PrimeReactProvider, PrimeReactContext } from 'primereact/api';
 
 
@@ -31,6 +31,7 @@ function App() {
   const triesCustomerCache = useRef(0);
   const triesProductsCache = useRef(0);
   const triesPriceTiersCache = useRef(0);
+  const triesPriceTiersByCategoryCache = useRef(0);
   const triesPaymentTermsCache = useRef(0);
 
   useEffect(() => {
@@ -42,6 +43,10 @@ function App() {
       if (!fetchedState.includes('products') && !fetchingState.includes('products') && distributionCenter !== null && triesProductsCache.current < 3) {
         triesProductsCache.current += 1;
         dispatch(fetchProducts({ token: token, shouldCheckLocalStorage: false, params: { locationGroupId: dc.id} }))
+      }
+      if (!fetchedState.includes('priceTiersByCategory') && !fetchingState.includes('priceTiersByCategory') && distributionCenter !== null && triesPriceTiersByCategoryCache.current < 3) {
+        triesPriceTiersByCategoryCache.current += 1;
+        dispatch(fetchPriceTiersByCategory({ token: token, shouldCheckLocalStorage: false, params: { dc: dc.name} }))
       }
       if (!fetchedState.includes('priceTiers') && !fetchingState.includes('priceTiers') && triesPriceTiersCache.current < 3) {
         triesPriceTiersCache.current += 1;
@@ -61,6 +66,7 @@ function App() {
       triesProductsCache.current = 0;
       triesPriceTiersCache.current = 0;
       triesPaymentTermsCache.current = 0;
+      triesPriceTiersByCategoryCache.current = 0;
     }
   }, [token]);
 

@@ -7,6 +7,7 @@ export const cacheSlice = createSlice({
         products: null,
         customers: null,
         priceTiers: null,
+        priceTiersByCategory: null,
         paymentTerms: null,
         fetched: [],
         fetching: [],
@@ -29,6 +30,10 @@ export const cacheSlice = createSlice({
             state.priceTiers = action.payload
             state.fetched = [...state.fetched, 'priceTiers']
         },
+        setPriceTiersByCategoryCache: (state, action) => {
+            state.priceTiersByCategory = action.payload
+            state.fetched = [...state.fetched, 'priceTiersByCategory']
+        },
     },
     extraReducers: builder => {
         builder.addCase(fetchCustomers.pending, (state) => {
@@ -42,6 +47,9 @@ export const cacheSlice = createSlice({
         })
         builder.addCase(fetchPaymentTerms.pending, (state) => {
             state.fetching = [...state.fetching, 'paymentTerms']
+        })
+        builder.addCase(fetchPriceTiersByCategory.pending, (state) => {
+            state.fetching = [...state.fetching, 'priceTiersByCategory']
         })
         builder.addCase(fetchCustomers.fulfilled, (state, action) => {
             state.fetching = state.fetching.filter((item) => {return item !== 'customers'})
@@ -61,6 +69,12 @@ export const cacheSlice = createSlice({
             state.fetched = [...state.fetched, 'priceTiers']
             // localStorage.setItem('priceTiers', JSON.stringify(action.payload))
         })
+        builder.addCase(fetchPriceTiersByCategory.fulfilled, (state, action) => {
+            state.fetching = state.fetching.filter((item) => {return item !== 'priceTiersByCategory'})
+            state.priceTiersByCategory = action.payload
+            state.fetched = [...state.fetched, 'priceTiersByCategory']
+            // localStorage.setItem('priceTiers', JSON.stringify(action.payload))
+        })
         builder.addCase(fetchPaymentTerms.fulfilled, (state, action) => {
             state.fetching = state.fetching.filter((item) => {return item !== 'paymentTerms'})
             state.paymentTerms = action.payload
@@ -75,6 +89,9 @@ export const cacheSlice = createSlice({
         })
         builder.addCase(fetchPriceTiers.rejected, (state, action) => {
             state.fetching = state.fetching.filter((item) => {return item !== 'priceTiers'})
+        })
+        builder.addCase(fetchPriceTiersByCategory.rejected, (state, action) => {
+            state.fetching = state.fetching.filter((item) => {return item !== 'priceTiersByCategory'})
         })
         builder.addCase(fetchPaymentTerms.rejected, (state, action) => {
             state.fetching = state.fetching.filter((item) => {return item !== 'paymentTerms'})
@@ -110,6 +127,10 @@ async function fetchData(datakey, token, shouldCheckLocalStorage, params) {
             break;
         case 'priceTiers':
             endpoint = "product/priceTiers";
+            break;
+        case 'fetchPriceTiersByCategory':
+            const { dc } = params;
+            endpoint = "product/priceTiersByCategory?dc=" + dc;
             break;
         case 'paymentTerms':
             endpoint = "orders/paymentTerms";
@@ -148,5 +169,11 @@ export const fetchPriceTiers = createAsyncThunk('cache/fetchPriceTiers', async (
 export const fetchPaymentTerms = createAsyncThunk('cache/fetchPaymentTerms', async (options) => {
     const { token, shouldCheckLocalStorage = true } = options;
     const data = await fetchData('paymentTerms', token, shouldCheckLocalStorage)
+    return data
+})
+
+export const fetchPriceTiersByCategory = createAsyncThunk('cache/fetchPriceTiersByCategory', async (options) => {
+    const { token, shouldCheckLocalStorage = false, params } = options;
+    const data = await fetchData('fetchPriceTiersByCategory', token, shouldCheckLocalStorage, params)
     return data
 })

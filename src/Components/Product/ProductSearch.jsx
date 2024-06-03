@@ -12,6 +12,8 @@ function ProductSearch({ selectedProduct, setProductToAdd, setFilteredProductLis
     const { t, i18n } = useTranslation()
     const dc = useSelector(state => state.distributionCenter.value)
     const priceTiers = useSelector(state => state.cache.priceTiers)
+    const priceTiersByCategory = useSelector(state => state.cache.priceTiersByCategory)
+    const customerState = useSelector(state => state.customer.value)
     const catchWeight = useRef(1.0)
     const [productPrices, setProductPrices] = useState(null)
     const [notePlaceHolder, setNotePlaceHolder] = useState(t('Note'))
@@ -27,17 +29,61 @@ function ProductSearch({ selectedProduct, setProductToAdd, setFilteredProductLis
     const numRef = useRef(null)
     // const [addProductMode, setAddProductMode] = useState(false) // hitting Enter on the add product was firing the enter on the product name, so a hack around it
 
+    useEffect(() => {
+        if(selectedProduct !== null) {
+            let priceTiers = [];
+            const filteredPrices = priceTiers.find((price) => {
+                return price.productNumber === selectedProduct.id
+            })
+            const filteredPricesByCategory = priceTiersByCategory.filter( (pr) => pr.productTreeId === selectedProduct.productTreeId)
+            if (filteredPricesByCategory && filteredPricesByCategory.length > 0) {
+                filteredPricesByCategory.sort((a,b)=> a.markupPercent - b.markupPercent)
+                const priceTiersByCategory = filteredPricesByCategory.map((pr) => {
+                    const title = pr.name.split('-')
+                    return {
+                        price: selectedProduct.price + (selectedProduct.price * pr.markupPercent),
+                        title: title.length > 2 ? title[2] : pr.name
+                    }
+                })
+                priceTiers = [...priceTiers, ...priceTiersByCategory]
+
+                let defaultProductPrice = selectedProduct.price
+
+                if(customerState) {
+                    const defaultPriceTierForCustomer = filteredPricesByCategory.find((pr) => pr.customerGroup === customerState.defaultAccountGroup)
+                    if(defaultPriceTierForCustomer) {
+                        defaultProductPrice += defaultProductPrice * defaultPriceTierForCustomer.markupPercent
+                    } else {
+                        defaultProductPrice += defaultProductPrice * filteredPricesByCategory[filteredPricesByCategory.length - 1].markupPercent
+                    }
+                } else {
+                    defaultProductPrice += defaultProductPrice * filteredPricesByCategory[filteredPricesByCategory.length - 1].markupPercent
+                }
+                setProductPrice(defaultProductPrice)
+            } else {
+                setProductPrice(selectedProduct.price)
+            }
+            if (filteredPrices) {
+                const priceTiersByProduct = filteredPrices.prices.map((i,pr) => {
+                    return {
+                        price: pr,
+                        title: filteredPrices.titles[i]
+                    }
+                })
+                priceTiers = [...priceTiers, ...priceTiersByProduct]
+            }
+
+            setProductPrices(priceTiers)
+        }
+    }, [selectedProduct, setProductPrices, priceTiers, customerState, setProductPrice])
+
 
 
     useEffect(() => {
         if (selectedProduct != null) {
             setProductName(selectedProduct.description)
             setProductUom(selectedProduct.unitOfMeasure)
-            setProductPrice(selectedProduct.price)
-            const filteredPrices = priceTiers.find((price) => {
-                return price.productNumber === selectedProduct.id
-            })
-            setProductPrices(filteredPrices)
+            // setProductPrice(selectedProduct.price)
             if (isCatchWeight(selectedProduct)) {
                 const numberCatchWeight = parseFloat(getMaxCatchWeight(selectedProduct))
                 if (numberCatchWeight) {
@@ -55,7 +101,7 @@ function ProductSearch({ selectedProduct, setProductToAdd, setFilteredProductLis
                 setCatchWeightMax(null)
             }
         }
-    }, [selectedProduct, setProductPrices, productPrices, setProductName, setProductUom, setProductPrice, productQty, setProductNote])
+    }, [selectedProduct, productPrices, setProductName, setProductUom, setProductPrice, productQty, setProductNote])
 
     function filterProducts(inputFilter) {
         const filter = inputFilter.toLowerCase()
@@ -182,11 +228,11 @@ function ProductSearch({ selectedProduct, setProductToAdd, setFilteredProductLis
                     <input ref={numRef} autoFocus onFocus={() => {handleOnFocus("productNum")}} onKeyUp={productNameKeyPress} autoComplete='off' onChange={(e) => { filterProducts(e.target.value); setProductName(e.target.value); }} value={productName} className="inputBox grow" type="text" placeholder={t("Product")} id="productSearch"></input>
                     <input onChange={(e) => { setProductQty(e.target.value) }} onKeyUp={(e) => { if (e.key === 'Enter') { handleOnFocus('price') } }} onFocus={() => { handleOnFocus('qty') }} ref={qtyRef} autoComplete='off' value={productQty} className="inputBox w-32" type="text" placeholder={t("Qty")} id="productQty"></input>
                     <input onChange={(e) => { setProductUom(e.target.value) }} disabled={true} onFocus={() => { handleOnFocus('uom') }} autoComplete='off' value={productUom} className="inputBox w-32" type="text" placeholder={t("UOM")} id="productUom"></input>
-                    <input ref={priceRef} onChange={(e) => { setProductPrice(e.target.value) }} onKeyUp={(e) => { if (e.key === 'Enter') { handleOnFocus('productNum'); addProduct(); } }} onFocus={() => { handleOnFocus('price') }} value={productPrice} list='priceList' className="inputBox w-32" type="text" placeholder={t("Price")} id="productPrice" />
+                    <input ref={priceRef} autoComplete='off' onChange={(e) => { setProductPrice(e.target.value) }} onKeyUp={(e) => { if (e.key === 'Enter') { handleOnFocus('productNum'); addProduct(); } }} onFocus={() => { handleOnFocus('price') }} value={productPrice} list='priceList' className="inputBox w-32" type="text" placeholder={t("Price")} id="productPrice" />
                     <datalist id='priceList'>
                         {
-                            productPrices !== null && productPrices != undefined && productPrices.prices.map((it, i) => {
-                                return (<option value={it} key={i}>{it.toFixed(2) + " - " + productPrices.titles[i]}</option>);
+                            productPrices !== null && productPrices !== undefined && productPrices.map((it, i) => {
+                                return (<option value={it.price} key={i}>{it.price.toFixed(2) + " - " + it.title}</option>);
                             })
                         }
                     </datalist>
