@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import { useTranslation, withTranslation, Trans } from 'react-i18next';
 import { useDispatch } from "react-redux";
 import { clearDistributionCenter } from "../../slices/distributionCenterSlice";
-import hffLogoUrl from '../../assets/hffoods-logo.png'
+import hffLogoUrl from '../../assets/horizontal-logo-black.svg'
 import { clearSelectedCustomer } from "../../slices/customerSlice";
 import { returnHome } from "../../slices/navSlice";
 import { clearCache } from "../../slices/cacheSlice";
@@ -74,8 +74,8 @@ function Navbar({ setNavOption, navOption, distributionCenter, subclass, setDist
             <nav className="nav-bar">
                 <div className="max-w-screen-xl flex flex-wrap items-center justify-between mx-auto py-4">
                     <div className="flex items-center space-x-3 rtl:space-x-reverse">
-                        <img src={hffLogoUrl} className="h-8" alt="HF Foods Logo" />
-                        <span className="self-center text-2xl font-semibold whitespace-nowrap">HF Foods Group</span>
+                        <img src={hffLogoUrl} className="h-10 w-96 object-fill" alt="HF Foods Logo" />
+                        {/* <span className="self-center text-2xl font-semibold whitespace-nowrap">HF Foods Group</span> */}
                         {/* {(token !== null && distributionCenter !== null && subclass !== null) && <ul className="flex flex-col font-medium mt-4 rounded-lg  md:space-x-8 rtl:space-x-reverse md:flex-row md:mt-0 md:border-0 md:bg-transparent">
                             {navOptions.map((option, i) => {
                                 return (
