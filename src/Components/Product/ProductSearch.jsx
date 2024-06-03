@@ -31,7 +31,7 @@ function ProductSearch({ selectedProduct, setProductToAdd, setFilteredProductLis
 
     useEffect(() => {
         if(selectedProduct !== null) {
-            let priceTiers = [];
+            let priceTiersList = [];
             const filteredPrices = priceTiers.find((price) => {
                 return price.productNumber === selectedProduct.id
             })
@@ -45,7 +45,7 @@ function ProductSearch({ selectedProduct, setProductToAdd, setFilteredProductLis
                         title: title.length > 2 ? title[2] : pr.name
                     }
                 })
-                priceTiers = [...priceTiers, ...priceTiersByCategory]
+                priceTiersList = [...priceTiersList, ...priceTiersByCategory]
 
                 let defaultProductPrice = selectedProduct.price
 
@@ -64,16 +64,17 @@ function ProductSearch({ selectedProduct, setProductToAdd, setFilteredProductLis
                 setProductPrice(selectedProduct.price)
             }
             if (filteredPrices) {
-                const priceTiersByProduct = filteredPrices.prices.map((i,pr) => {
+                const priceTiersByProduct = filteredPrices.prices.map((pr,i) => {
+                    const title = filteredPrices.titles[i].split('-')
                     return {
                         price: pr,
                         title: filteredPrices.titles[i]
                     }
                 })
-                priceTiers = [...priceTiers, ...priceTiersByProduct]
+                priceTiersList = [...priceTiersList, ...priceTiersByProduct]
             }
 
-            setProductPrices(priceTiers)
+            setProductPrices(priceTiersList)
         }
     }, [selectedProduct, setProductPrices, priceTiers, customerState, setProductPrice])
 
