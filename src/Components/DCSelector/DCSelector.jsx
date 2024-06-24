@@ -19,6 +19,7 @@ function DCSelector({ setDistributionCenter, setSubclass }) {
     const [subclassList, setSubclassList] = useState([]);
     const [filteredSubclassList, setFilteredSubclassList] = useState([]);
     const [shouldFilterSubclassList, setShouldFilterSubclassList] = useState(true);
+    const [savedUsername, saveUsername] = useLocalStorage("username", null);
     const { t } = useTranslation();
 
     const dispatch = useDispatch();
@@ -30,13 +31,13 @@ function DCSelector({ setDistributionCenter, setSubclass }) {
                 setIsLoading(true)
                 try {
                     let resultDC = await axios.get(
-                        import.meta.env.VITE_API_BASE_URL + "dc/getAllDC",
+                        NEMO_API_HOST + "dc/getAllDCForUser?userName="+ savedUsername,
                         {
                             headers: { 'Authorization': `Bearer ${token}` }
                         }
                     )
                     let resultSubclass = await axios.get(
-                        import.meta.env.VITE_API_BASE_URL + "dc/getAllSubclass",
+                        NEMO_API_HOST + "dc/getAllSubclass",
                         {
                             headers: { 'Authorization': `Bearer ${token}` }
                         }
@@ -83,10 +84,11 @@ function DCSelector({ setDistributionCenter, setSubclass }) {
                 dispatch(setSubclassRedux(newFilteredList[0]))
             } else {
                 dispatch(clearSubclass())
+                setSubclass(null)
             }
             setShouldFilterSubclassList(false)
         }
-    }, [selectedDC, subclassList, shouldFilterSubclassList, dispatch, setSelectedSubclass, setFilteredSubclassList, clearSubclass, setSubclassRedux, filteredSubclassList, setShouldFilterSubclassList])
+    }, [selectedDC, subclassList, shouldFilterSubclassList, dispatch, setSelectedSubclass, setFilteredSubclassList, clearSubclass, setSubclassRedux, filteredSubclassList, setSubclass, setShouldFilterSubclassList])
 
     function setSelectedDCandSubclass() {
         const dcFound = dcList.find(x => x.name === selectedDC);
@@ -98,7 +100,7 @@ function DCSelector({ setDistributionCenter, setSubclass }) {
         setDistributionCenter(dcFound)
         setSubclass(selectedSubclass)
         dispatch(setDistributionCenterRedux(dcFound))
-        dispatch(fetchProducts({ token: token, shouldCheckLocalStorage: false, params: { locationGroupId: dcFound.id} }))
+        dispatch(fetchProducts({ token: token, shouldCheckLocalStorage: false, params: { locationGroupId: dcFound.id, locationGroupName: dcFound.name } }))
     }
 
     return (

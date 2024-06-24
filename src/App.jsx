@@ -10,9 +10,11 @@ import Order from './pages/Order.Page.jsx';
 import OrderLookup from './pages/OrderLookup.page.jsx';
 import { fetchCustomers, fetchProducts, fetchPriceTiers, fetchPaymentTerms, fetchPriceTiersByCategory } from './slices/cacheSlice.js';
 import { PrimeReactProvider, PrimeReactContext } from 'primereact/api';
+import { useTranslation } from 'react-i18next';
 
 
 function App() {
+  const { t, i18n } = useTranslation();
   const [productsOnOrder, setProductsOnOrder] = useState([])
   const [navOption, setNavOption] = useState("");
   const [distributionCenter, setDistributionCenter] = useState(null);
@@ -21,6 +23,7 @@ function App() {
   const [errorTitle, setErrorTitle] = useState('');
   const [errorBody, setErrorBody] = useState('');
   const [token] = useLocalStorage("token", null);
+  const [username] = useLocalStorage("username", null);
   const fetchedState = useSelector(state => state.cache.fetched)
   const fetchingState = useSelector(state => state.cache.fetching)
   const errorState = useSelector(state => state.error.value)
@@ -42,7 +45,7 @@ function App() {
       }
       if (!fetchedState.includes('products') && !fetchingState.includes('products') && distributionCenter !== null && triesProductsCache.current < 3) {
         triesProductsCache.current += 1;
-        dispatch(fetchProducts({ token: token, shouldCheckLocalStorage: false, params: { locationGroupId: dc.id} }))
+        dispatch(fetchProducts({ token: token, shouldCheckLocalStorage: false, params: { locationGroupId: dc.id, locationGroupName: dc.name } }))
       }
       if (!fetchedState.includes('priceTiersByCategory') && !fetchingState.includes('priceTiersByCategory') && distributionCenter !== null && triesPriceTiersByCategoryCache.current < 3) {
         triesPriceTiersByCategoryCache.current += 1;
@@ -82,7 +85,7 @@ function App() {
     <>
       <PrimeReactProvider>
         <div className='min-h-screen h-screen w-full'>
-          {errorState.showError && <ErrorModal title={errorState.errorTile} body={errorState.errorBody} dismissButtonTitle={'ok'} dismissAction={errorState.errorButton} setProductsOnOrder={setProductsOnOrder} setDistributionCenter={setDistributionCenter} setSubclass={setSubclass}/>}
+          {errorState.showError && <ErrorModal title={errorState.errorTile} body={errorState.errorBody} extraInfo={errorState.extraInfo} dismissButtonTitle={t('Ok')} dismissAction={errorState.errorButton} setProductsOnOrder={setProductsOnOrder} setDistributionCenter={setDistributionCenter} setSubclass={setSubclass}/>}
           <div className=' h-20'>
             <Navbar setNavOption={setNavOption} navOption={navOption} subclass={subclass} distributionCenter={distributionCenter} setDistributionCenter={setDistributionCenter} setSubclass={setSubclass} setProductsOnOrder={setProductsOnOrder} />
           </div>
@@ -91,7 +94,7 @@ function App() {
               <Welcome setErrorTitle={setErrorTitle} setErrorBody={setErrorBody} setErrorModalVisible={setErrorModalVisible} setDistributionCenter={setDistributionCenter} setSubclass={setSubclass} />
             }
             {(distributionCenter !== null && subclass !== null && token !== null && customerState == null && navState !== 'orderLookup') &&
-              <Customer />
+              <Customer productsInOrder={productsOnOrder} />
             }
             {(distributionCenter !== null && subclass !== null && token !== null && customerState != null && (navState === null || navState === 'newOrder')) &&
               <Order productsOnOrder={productsOnOrder} setProductsOnOrder={setProductsOnOrder} />

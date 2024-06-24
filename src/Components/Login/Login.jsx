@@ -9,6 +9,7 @@ import { useSelector, useDispatch } from 'react-redux'
 function Login() {
 
     const [token, saveToken] = useLocalStorage("token", null);
+    const [savedUsername, saveUsername] = useLocalStorage("username", null);
     const [userName, setUserName] = useState("");
     const [password, setPassword] = useState("");
 
@@ -20,7 +21,7 @@ function Login() {
         const logInAttemp = async (u, p) => {
             try {
                 const response = await axios.post(
-                    import.meta.env.VITE_API_BASE_URL + "auth/login",
+                    NEMO_API_HOST + "auth/login",
                     {
                         "username": u,
                         "password": p
@@ -31,6 +32,7 @@ function Login() {
 
                     if (data.wasSuccess) {
                         saveToken(data.token)
+                        saveUsername(u)
                     }
                 } else {
                     dispatch(

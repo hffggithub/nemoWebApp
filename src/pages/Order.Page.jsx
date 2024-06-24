@@ -16,6 +16,7 @@ import ProductHistory from '../Components/Product/ProductHistory.jsx';
 import { clearOrderInContext } from '../slices/orderSlice.js';
 import { consolidateLineItemsData } from '../utils/orderUtils.js';
 import { getDateWithoutTimezone } from '../utils/timeUtils.js';
+import { selectTab } from '../slices/navBarSlice.js';
 
 function Order({ productsOnOrder, setProductsOnOrder }) {
     const [filteredProductList, setFilteredProductList] = useState([])
@@ -39,6 +40,35 @@ function Order({ productsOnOrder, setProductsOnOrder }) {
     const subclassState = useSelector(state => state.subclass.value)
     const [selectedProductTab, setSelectedProductTab] = useState(0)
     const orderInContextState = useSelector(state => state.order.orderInContext)
+    const [predefinedQty, setPRedifinedQty] = useState(null);
+    const [inventoryExceededPopupShown, setInventoryExceededPopupShown] = useState(false)
+    const [orderErrorAcnkowledged, setOrderErrorAcnkowledged] = useState(false)
+    const errorState = useSelector(state => state.error.value.showError)
+    const [savedUsername, saveUsername] = useLocalStorage("username", null);
+
+    dispatch(selectTab(1))
+
+    useEffect(() => {
+        if(!errorState && inventoryExceededPopupShown) {
+            setInventoryExceededPopupShown(false)
+            setOrderErrorAcnkowledged(true)
+        }
+    }, [errorState])
+
+    useEffect(() => {
+        if(productsOnOrder.length == 0) {
+            return;
+        }
+        function handleOnBeforeUnload(event) {
+            event.preventDefault();
+            return (event.returnValue = '');
+        }
+        window.addEventListener('beforeunload', handleOnBeforeUnload, { capture: true } )
+        return () => {
+            window.removeEventListener('beforeunload', handleOnBeforeUnload, { capture: true } )
+        }
+    }, [productsOnOrder])
+
 
     const [orderNote, setOrderNote] = useState("");
 
@@ -72,6 +102,21 @@ function Order({ productsOnOrder, setProductsOnOrder }) {
         if(orderInContextState !== null) {
             const lineItems = consolidateLineItemsData(orderInContextState.lineItems, productList)
             setProductsOnOrder(lineItems)
+            if(paymentTerms) {
+                if(paymentTerms.length > 0) {
+                    for(let i = 0; i<paymentTerms.length; i++) {
+                        if(paymentTerms[i].id === orderInContextState.paymentTermsId) {
+                            setSelectedPaymentTerm(i);
+                            break;
+                        }
+                    }
+                }
+            }
+            let scheduledDateFromContext = orderInContextState.scheduledDate?.split('T')[0] ?? "";
+            let dateAux = new Date(scheduledDateFromContext)
+            dateAux = getDateWithoutTimezone(dateAux)
+            setScheduledDate(dateAux)
+            setOrderNote(orderInContextState.orderNotes)
         }
     }, [orderInContextState])
 
@@ -97,7 +142,7 @@ function Order({ productsOnOrder, setProductsOnOrder }) {
     //     async function fetchProducts() {
     //         try {
     //             const { data } = await axios.get(
-    //                 import.meta.env.VITE_API_BASE_URL + "product/all",
+    //                 NEMO_API_HOST + "product/all",
     //                 {
     //                     headers: { 'Authorization': `Bearer ${token}` }
     //                 }
@@ -130,6 +175,14 @@ function Order({ productsOnOrder, setProductsOnOrder }) {
 
     // }, [token, setToken, shouldFetch, setShouldFetch, setFilteredProductList, setProductList])
 
+    // useEffect(()=> {
+    //     return () => {
+    //         window.alert("sometext");
+    //     }
+    // }, [])
+
+
+
     useEffect(() => {
 
         async function sendOrder() {
@@ -143,10 +196,58 @@ function Order({ productsOnOrder, setProductsOnOrder }) {
                 customerToSend.shippingAddress = customerShippingAddress
             }
             try {
+                const groupedNums = productsOnOrder.reduce((acc, current) => {
+                    const num = current.productNumber;
+                    const prevObject = acc[num];
+                    if(prevObject) {
+                        acc[num] = {
+                            ...prevObject,
+                            quantity: prevObject.quantity + current.quantity,
+                        };
+                    } else {
+                        acc[num] = current;
+                    }
+                    return acc;
+                },{})
+                const arrayOfProductNums = productsOnOrder.map((li) => {
+                    return "\"" + li.productNumber + "\""
+                });
+                if(arrayOfProductNums.length > 0 && !orderErrorAcnkowledged) {
+                    const resultInventory = await axios.get(
+                        NEMO_API_HOST + `product/getProductsInventory?locationGroupId=${dc.id}&products=${arrayOfProductNums.join(',')}`,
+                        {
+                            headers: { 'Authorization': `Bearer ${token}` }
+                        }
+                    )
+                    const invalidItmes =  resultInventory.data.filter((it) => (it.inventory - (it.qtynotavailable + it.qtyallocated)) < groupedNums[it.num].quantity).map((it) => {
+                        return {...it,
+                            requested: groupedNums[it.num].quantity
+                        }
+                    })
+                    if (invalidItmes && invalidItmes.length > 0) {
+                        dispatch(
+                            showError(
+                                {
+                                    errorTile: t('Invalid request'),
+                                    errorBody: t(`Not enough invenotry to fulfill order, please vefiry the following items in the order. If this is intended please send the order again.`),
+                                    errorButton: t('ok'),
+                                    extraInfo: invalidItmes,
+                                    showError: true,
+                                }
+                            )
+                        )
+                        setInventoryExceededPopupShown(true)
+                        setShouldSendOrder(false)
+                        dispatch(fetchProducts({ token: token, shouldCheckLocalStorage: false, params: { locationGroupId: dc.id, locationGroupName: dc.name } }))
+
+                        return
+                    }
+                }
                 const response = await axios.post(
-                    import.meta.env.VITE_API_BASE_URL + "orders",
+                    NEMO_API_HOST + "orders",
                     {
-                        "Number" :  null,
+                        "Id": orderInContextState?.id ?? null,
+                        "Number" :  orderInContextState?.num ?? null,
                         "customer": customerToSend,
                         "lineItems": productsOnOrder,
                         "action": orderAction,
@@ -157,6 +258,7 @@ function Order({ productsOnOrder, setProductsOnOrder }) {
                         "fishbowlSubclass": subclassState,
                         "notes": orderNote,
                         "paymentTerms": paymentTerms[selectedPaymentTerm].name,
+                        "username": savedUsername,
                     },
                     {
                         headers: { 'Authorization': `Bearer ${token}` }
@@ -167,7 +269,7 @@ function Order({ productsOnOrder, setProductsOnOrder }) {
                         showError(
                             {
                                 errorTile: t('Success'),
-                                errorBody: t(`The order was ${orderAction === 'save' ? 'saved' : 'sent'} successfully`),
+                                errorBody: t(`The order has been ${orderAction === 'save' ? 'saved' : 'submitted and issued'} successfully`),
                                 errorButton: 'returnHome',
                                 showError: true,
                             }
@@ -199,8 +301,9 @@ function Order({ productsOnOrder, setProductsOnOrder }) {
                     )
                 )
             }
+            setOrderErrorAcnkowledged(false)
             setShouldSendOrder(false)
-            dispatch(fetchProducts({ token: token, shouldCheckLocalStorage: false, params: { locationGroupId: dc.id } }))
+            dispatch(fetchProducts({ token: token, shouldCheckLocalStorage: false, params: { locationGroupId: dc.id, locationGroupName: dc.name } }))
         }
 
         if (shouldSendOrder) {
@@ -219,7 +322,10 @@ function Order({ productsOnOrder, setProductsOnOrder }) {
             ...product
         }])
         setSelectedProduct(null)
-        setSelectedProductTab(0)
+        setPRedifinedQty(null)
+        if(selectedProductTab !== 2) {
+            setSelectedProductTab(0)
+        }
     }
 
     const gridOptions = {
@@ -280,13 +386,16 @@ function Order({ productsOnOrder, setProductsOnOrder }) {
             setSelectedProduct(selectedRows[0])
             setSelectedProductTab(1)
             setFocusedElement('qty')
+            setPRedifinedQty(1)
         }
     }
 
     useEffect(() => {
         if(focusedElement === "productNum") {
             console.log('prod element focused')
-            setSelectedProductTab(0)
+            if(selectedProductTab !== 2) {
+                setSelectedProductTab(0)
+            }
             setFilteredProductList(productList)
         }
     }, [focusedElement])
@@ -323,17 +432,27 @@ function Order({ productsOnOrder, setProductsOnOrder }) {
         }
     }
 
+    function selectProductFromUpsell(product) {
+        const productInCache = productList.find((prod) => prod.num === product.productNumber)
+        if(productInCache) {
+            setSelectedProduct(productInCache)
+            setPRedifinedQty(product.quantity)
+            setFocusedElement('qty')
+        }
+    }
+
     return (
         <>
             <div className="w-full h-full flex flex-col">
                 <div className='flex space-x-1 items-end text-sm'>
-                    <div className="flex-initial w-1/2">
-                        <ProductSearch focusedElement={focusedElement} setFocusedElement={setFocusedElement} selectedProduct={selectedProduct} setProductToAdd={addProduct} setFilteredProductList={setFilteredProductList} productList={productList} selectCurrentProduct={selectCurrentProduct} />
+                    <div className="flex flex-initial h-full flex-col w-1/2">
+                        <h1 className="flex-auto self-center text-center font-bold text-lg">{(orderInContextState && orderInContextState.num) ? t('Order') + ": " + orderInContextState.num : ''}</h1>
+                        <ProductSearch predefinedQty={predefinedQty} focusedElement={focusedElement} setFocusedElement={setFocusedElement} selectedProduct={selectedProduct} setProductToAdd={addProduct} setFilteredProductList={setFilteredProductList} productList={productList} selectCurrentProduct={selectCurrentProduct} />
                     </div>
                     <div className="flex-initial w-1/2">
                         <div className='flex flex-col'>
                             <div>
-                                <CustomerInfo customer={customerState} setCustomerShippingAddress={setCustomerShippingAddress} showCustomerAddress={true} />
+                                <CustomerInfo selectedShippingAddress={orderInContextState?.shippingAddress ?? customerState.shippingAddress} customer={customerState} setCustomerShippingAddress={setCustomerShippingAddress} showCustomerAddress={true} />
                             </div>
                             <div className='grid grid-cols-2 mx-2 mt-2 gap-y-2 gap-x-1'>
                                 <div className='flex'>
@@ -349,10 +468,6 @@ function Order({ productsOnOrder, setProductsOnOrder }) {
                                     <span className='text-right mr-3 w-1/3 self-center'>{t('Scheduled Shipment')}:</span>
                                     <input id='scheduledShipment' onChange={(e) => { setScheduledDate(transformDateFromDatePicker(e.target.value)) }} className='flex-auto w-32 border rounded-lg py-1 mx-1' value={formatDate(scheduledDate, 'yyyy-mm-dd')} min={formatDate(new Date(), 'yyyy-mm-dd')} type='date'></input>
                                 </div>
-                                <div className='flex col-span-2'>
-                                    <span className="text-right mr-3 w-1/6 self-center">{t('Order Note')}:</span>
-                                    <input id='orderNote' value={orderNote} onChange={(e) => { setOrderNote(e.target.value) }} placeholder={t('Order Note')} className='flex-auto border rounded-lg py-1 px-2 mx-1' type='text'></input>
-                                </div>
                             </div>
                         </div>
                     </div>
@@ -362,6 +477,7 @@ function Order({ productsOnOrder, setProductsOnOrder }) {
                         <div className='tab flex flex-row rounded-t-lg text-sm'>
                             <button id='productTab' className={selectedProductTab === 0 ? 'tablinks active' : 'tablinks'} onClick={() => { setSelectedProductTab(0) }}>{t('Product')}</button>
                             <button id='productHistoryTab' disabled={selectedProduct === null} className={selectedProductTab === 1 ? 'tablinks active' : 'tablinks'} onClick={() => { setSelectedProductTab(1) }}>{t('Product History')}</button>
+                            <button id='orderHistoryTab' className={selectedProductTab === 2 ? 'tablinks active' : 'tablinks'} onClick={() => { setSelectedProductTab(2) }}>{t('Order History')}</button>
                         </div>
                     </div>
                     <div className="flex-initial w-1/2 text-sm items-end flex justify-center">
@@ -372,6 +488,7 @@ function Order({ productsOnOrder, setProductsOnOrder }) {
                     <div className='w-1/2 h-full tabcontent rounded-b-lg'>
                         {selectedProductTab === 0 && <div className='ag-theme-quartz w-full h-full'>
                             <AgGridReact
+                                suppressDragLeaveHidesColumns={true}
                                 onGridReady={onGridReady}
                                 ref={productGridRef}
                                 onRowClicked={selectCurrentProduct}
@@ -383,10 +500,11 @@ function Order({ productsOnOrder, setProductsOnOrder }) {
                             </AgGridReact>
                         </div> }
                         {(selectedProductTab === 1 && selectedProduct !== null) && <ProductHistory selectedProduct={selectedProduct} />}
+                        {(selectedProductTab === 2) && <ProductHistory selectedProduct={undefined} setSelectedProduct={selectProductFromUpsell} />}
                     </div>
                     <div className='flex flex-col flex-initial w-1/2 h-full'>
                         <div className='flex-initial w-full h-full' >
-                            <OrderSummary productList={productsOnOrder} setProductList={setProductsOnOrder} showRemoveButton={true} orderInfo={orderInfo} />
+                            <OrderSummary orderNote={orderNote} setOrderNote={setOrderNote} productList={productsOnOrder} setProductList={setProductsOnOrder} showRemoveButton={true} orderInfo={orderInfo} />
                         </div>
                         <div className='flex flex-initial w-full h-15 space-x-2 justify-end'>
                             <input type="checkbox" id="orderInfo" name="orderInfo" checked={orderInfo} onChange={() => { setOrderInfo(!orderInfo) }}></input>
@@ -394,8 +512,8 @@ function Order({ productsOnOrder, setProductsOnOrder }) {
                         </div>
                         <div className='flex flex-initial w-full h-15 justify-evenly px-10'>
                             <button disabled={shouldSendOrder} onClick={() => { cancelOrderEdit() }} className='primary-button font-medium rounded-lg px-5 py-2.5 text-center me-2 mb-2'>{t('Cancel')}</button>
-                            <button disabled={shouldSendOrder} onClick={() => { submitOrder('save') }} className='primary-button font-medium rounded-lg px-5 py-2.5 text-center me-2 mb-2'>{t('Save')}</button>
-                            <button disabled={shouldSendOrder} onClick={() => { submitOrder('send') }} className='primary-button font-medium rounded-lg px-5 py-2.5 text-center me-2 mb-2'>{t('Send')}</button>
+                            <button disabled={shouldSendOrder || (orderInContextState?.statusId ?? 10) !== 10 || productsOnOrder.length <= 0} onClick={() => { submitOrder('save') }} className='primary-button font-medium rounded-lg px-5 py-2.5 text-center me-2 mb-2'>{t('Save')}</button>
+                            <button disabled={shouldSendOrder  || productsOnOrder.length <= 0} onClick={() => { submitOrder('send') }} className='primary-button font-medium rounded-lg px-5 py-2.5 text-center me-2 mb-2'>{t('Send')}</button>
                         </div>
                     </div>
                 </div>

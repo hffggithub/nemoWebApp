@@ -5,6 +5,7 @@ import { useTranslation, withTranslation, Trans } from 'react-i18next';
 import { useEffect, useState } from 'react';
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faXmark } from "@fortawesome/free-solid-svg-icons";
+import { verifyValidData } from '../../utils/orderUtils';
 
 const gridOptions = {
     autoSizeStrategy: {
@@ -23,7 +24,7 @@ const gridOptions = {
 
 
 
-function OrderSummary({ productList, setProductList, showRemoveButton, orderInfo }) {
+function OrderSummary({ productList, setProductList, showRemoveButton, orderInfo, orderNote, setOrderNote }) {
     const { t, i18n } = useTranslation()
     const [subTotal, setSubTotal] = useState(0.0)
     const [tax, setTax] = useState(0.0)
@@ -72,7 +73,7 @@ function OrderSummary({ productList, setProductList, showRemoveButton, orderInfo
     const DeleteButton = props => {
         return (<>
         
-        <span class="actionIcons">
+        <span className="actionIcons">
                 <button onClick={() => { removeItem(props.value)}} title={t('Remove')}><FontAwesomeIcon icon={faXmark} /></button>
          </span>
         </>)
@@ -82,7 +83,12 @@ function OrderSummary({ productList, setProductList, showRemoveButton, orderInfo
         const [qty, setQty] = useState(props.value.quantity)
 
         function handleBlur(event) {
-            updateQuantity(props.value.index, qty)
+            const numberQty = parseFloat(qty)
+            if(!verifyValidData(numberQty, 1)) {
+                updateQuantity(props.value.index, qty)
+            } else {
+                setQty(props.value.quantity)
+            }
         }
 
         return(
@@ -96,7 +102,12 @@ function OrderSummary({ productList, setProductList, showRemoveButton, orderInfo
         const [price, setPrice] = useState(props.value.price)
 
         function handleBlur(event) {
-            updatePrice(props.value.index, price)
+            const numberPrice = parseFloat(price)
+            if(!verifyValidData(1, numberPrice)) {
+                updatePrice(props.value.index, price)
+            } else {
+                setPrice(props.value.price)
+            }
         }
 
         return(
@@ -117,6 +128,7 @@ function OrderSummary({ productList, setProductList, showRemoveButton, orderInfo
             let marginAux = 0.0;
             let costAux = 0.0;
             productList.forEach(element => {
+                console.log('elemnt weight',element.weight);
                 subTotalAux += element.quantity * element.price
                 grossWeightAux += element.quantity * element.weight
                 netWeightAux += element.quantity * element.weight
@@ -146,7 +158,7 @@ function OrderSummary({ productList, setProductList, showRemoveButton, orderInfo
 
 
     const columnDefsSumary = [
-        { headerName: t('ID'), field: "productNumber", width: 100 },
+        { headerName: t('Product ID'), field: "productNumber", width: 100 },
         { headerName: t('Name'), field: "productName", flex: 2 },
         { headerName: t('Chinese Name'), field: "chineseName", flex: 2},
         { headerName: t('Quantity'), valueGetter: (p) => p.data, cellRenderer: QuantityTextField, width: 90  },
@@ -161,27 +173,34 @@ function OrderSummary({ productList, setProductList, showRemoveButton, orderInfo
         <div className="h-full w-full">
             <div className='flex-initial ag-theme-quartz w-full h-5/6'>
                 <AgGridReact
+                    suppressDragLeaveHidesColumns={true}
                     gridOptions={gridOptions}
                     columnDefs={columnDefsSumary}
                     rowData={productList}>
                 </AgGridReact>
             </div>
             <div className='w-full h-1/6 py-4 text-right grid grid-cols-4'>
-                <div className='col-span-2'></div>
-                <div class="grid grid-cols-1 gap-x-4"> 
-                    {orderInfo && (<>
+                <div className='col-span-2'>
+                    {setOrderNote && <div className='flex flex-col flex-initial w-full'>
+                        <span className="text-right mr-3 self-center">{t('Order Note')}:</span>
+                        <textarea id='orderNote' value={orderNote} onChange={(e) => { setOrderNote(e.target.value) }} placeholder={t('Order Note')} className='flex-auto border rounded-lg py-1 px-2 mx-1 resize-none' type='text'></textarea>
+                    </div>}
+                </div>
+                <div className="grid grid-cols-1 gap-x-4"> 
+                    <>
                         <span className="flex">
                             <span className='text-right mr-3 w-1/2'>{t('Gross Weight')}:</span><span className='text-right grow'>{grossWeight.toLocaleString('en-US', {minimumFractionDigits:2})}</span>
                         </span>
                         <span className="flex">
                             <span className='text-right mr-3 w-1/2'>{t('Net Weight')}:</span><span className='text-right grow'>{netWeight.toLocaleString('en-US', {minimumFractionDigits:2})}</span>
                         </span>
-                        <span className="flex">
-                            <span className='text-right mr-3 w-1/2'>{t('Margin')}:</span><span className='text-right grow'>{margin.toLocaleString('en-US', {minimumFractionDigits:2})}</span>
-                        </span>
-                    </>)}
+                        {orderInfo && (<span className="flex">
+                            <span className='text-right mr-3 w-1/2'>{t('Margin')}:</span><span className='text-right grow'>{((margin/100) * total).toLocaleString('en-US', {minimumFractionDigits:2})}</span>
+                            <span className='text-right grow'>({margin.toLocaleString('en-US', {minimumFractionDigits:2})}%)</span>
+                        </span>)}
+                    </>
                 </div>
-                <div class="grid grid-cols-1 text-right">
+                <div className="grid grid-cols-1 text-right">
                     <span className="flex">
                         <span className='text-right mr-3 w-1/2'>{t('Sub total')}:</span><span className='text-right grow'>{subTotal.toLocaleString('en-US', {minimumFractionDigits:2})}</span>
                     </span>

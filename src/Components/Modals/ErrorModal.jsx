@@ -9,10 +9,14 @@ import { useLocalStorage } from '@uidotdev/usehooks'
 import { useState, useEffect, useCallback, useRef } from 'react'
 import axios from 'axios'
 import { clearOrderInContext } from '../../slices/orderSlice'
+import { AgGridReact } from 'ag-grid-react'
+import 'ag-grid-community/styles//ag-grid.css';
+import 'ag-grid-community/styles//ag-theme-quartz.css';
 
-function ErrorModal({ title, body, dismissButtonTitle, dismissAction, setProductsOnOrder, setDistributionCenter, setSubclass }) {
+function ErrorModal({ title, body, dismissButtonTitle, dismissAction, setProductsOnOrder, setDistributionCenter, setSubclass, extraInfo }) {
     const { t } = useTranslation();
     const [token, saveToken] = useLocalStorage("token", null);
+    const [savedUsername, saveUsername] = useLocalStorage("username", null);
     const [tryLogout, setTryLogout] = useState(false);
     const dispatch = useDispatch()
 
@@ -20,12 +24,13 @@ function ErrorModal({ title, body, dismissButtonTitle, dismissAction, setProduct
 
     const confirmRef = useRef();
     const declineRef = useRef();
+    console.log(extraInfo)
     
     useEffect(() => {
         const attemptLogout = async () => {
             try{
                 const { data } = await axios.post(
-                    import.meta.env.VITE_API_BASE_URL + "auth/logout",
+                    NEMO_API_HOST + "auth/logout",
                     {},
                     {
                         headers: { 'Authorization': `Bearer ${token}` }
@@ -39,8 +44,9 @@ function ErrorModal({ title, body, dismissButtonTitle, dismissAction, setProduct
                     setDistributionCenter(null);
                     setSubclass(null);
                     saveToken(null);
+                    saveUsername(null);
                     setProductsOnOrder([]);
-                    dispatch(hideError())
+                    dispatch(hideError());
                 }
             } catch(ex) {
                 console.log(ex)
@@ -158,6 +164,15 @@ function ErrorModal({ title, body, dismissButtonTitle, dismissAction, setProduct
         };
     }, [handleUserKeyPress, focusedElement]);
 
+    const columnDefs = [
+        { headerName: t('Product ID'), field: "num", width: 100},
+        { headerName: t('Name'), field: "description", flex: 1 },
+        { headerName: t('Chinese Name'), field: "chineseName", flex: 1},
+        // { headerName: t('Chinese Name'), field: "customFieldsMap.10.value", width: 190 },
+        { headerName: t('Requested'), field: "requested", width: 100, type: 'rightAligned' },
+        { headerName: t('Available'), valueGetter: (p) => (p.data.inventory - (p.data.qtynotavailable + p.data.qtyallocated)), width: 90, type: 'rightAligned', valueFormatter: params => params.value.toFixed(0) },
+    ]
+
     return (
         <>
             <div className="flex overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full modal-backdrop">
@@ -178,6 +193,14 @@ function ErrorModal({ title, body, dismissButtonTitle, dismissAction, setProduct
                             <p className="text-base leading-relaxed">
                                 {body}
                             </p>
+                            {extraInfo && <div className='ag-theme-quartz w-full h-72'>
+                                <AgGridReact
+                                    suppressDragLeaveHidesColumns={true}
+                                    rowSelection="none"
+                                    columnDefs={columnDefs}
+                                    rowData={extraInfo}>
+                                </AgGridReact>
+                            </div>}
                         </div>
 
                         <div className="flex items-center p-4 md:p-5 border-t rounded-b">

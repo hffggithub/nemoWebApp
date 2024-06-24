@@ -1,9 +1,11 @@
 import { useEffect, useRef, useState } from 'react';
 import { useTranslation, withTranslation, Trans } from 'react-i18next';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import { Dropdown } from 'primereact/dropdown';
+import { showError } from '../../slices/errorSlice';
+import { verifyValidData } from '../../utils/orderUtils';
 
-function ProductSearch({ selectedProduct, setProductToAdd, setFilteredProductList, productList, focusedElement, setFocusedElement, selectCurrentProduct }) {
+function ProductSearch({ selectedProduct, setProductToAdd, setFilteredProductList, productList, focusedElement, setFocusedElement, selectCurrentProduct, predefinedQty }) {
     const [productName, setProductName] = useState("");
     const [productQty, setProductQty] = useState("");
     const [productUom, setProductUom] = useState("");
@@ -14,7 +16,9 @@ function ProductSearch({ selectedProduct, setProductToAdd, setFilteredProductLis
     const priceTiers = useSelector(state => state.cache.priceTiers)
     const priceTiersByCategory = useSelector(state => state.cache.priceTiersByCategory)
     const customerState = useSelector(state => state.customer.value)
+    const errorState = useSelector(state => state.error.value.showError)
     const catchWeight = useRef(1.0)
+    const dispatch = useDispatch();
     const [productPrices, setProductPrices] = useState(null)
     const [notePlaceHolder, setNotePlaceHolder] = useState(t('Note'))
 
@@ -30,12 +34,32 @@ function ProductSearch({ selectedProduct, setProductToAdd, setFilteredProductLis
     // const [addProductMode, setAddProductMode] = useState(false) // hitting Enter on the add product was firing the enter on the product name, so a hack around it
 
     useEffect(() => {
+        if(predefinedQty !== null) {
+            setProductQty(predefinedQty)
+            console.log(qtyRef)
+        }
+    },[predefinedQty])
+
+    // useEffect(() => {
+    //     if(!errorState) {
+    //         const lastElement = focusedElement
+    //         setFocusedElement('')
+    //         console.log('this is dismissed')
+    //         setFocusedElement(lastElement)
+    //     }
+    // }, [errorState])
+
+    useEffect(() => {
+        console.log(selectedProduct)
         if(selectedProduct !== null) {
+            let priceSetByCategory = false
+            setProductPrice(selectedProduct.price)
             let priceTiersList = [];
             const filteredPrices = priceTiers.find((price) => {
                 return price.productNumber === selectedProduct.id
             })
-            const filteredPricesByCategory = priceTiersByCategory.filter( (pr) => pr.productTreeId === selectedProduct.productTreeId)
+            const productTreeIdsFromSelectedProduct = selectedProduct.productTreeId ? selectedProduct.productTreeId.split(',').map((it) => parseInt(it)) : undefined
+            const filteredPricesByCategory = priceTiersByCategory.filter( (pr) => productTreeIdsFromSelectedProduct ? productTreeIdsFromSelectedProduct.includes(pr.productTreeId) : false)
             if (filteredPricesByCategory && filteredPricesByCategory.length > 0) {
                 filteredPricesByCategory.sort((a,b)=> a.markupPercent - b.markupPercent)
                 const priceTiersByCategory = filteredPricesByCategory.map((pr) => {
@@ -56,12 +80,12 @@ function ProductSearch({ selectedProduct, setProductToAdd, setFilteredProductLis
                     } else {
                         defaultProductPrice += defaultProductPrice * filteredPricesByCategory[filteredPricesByCategory.length - 1].markupPercent
                     }
+                    priceSetByCategory = true;
                 } else {
                     defaultProductPrice += defaultProductPrice * filteredPricesByCategory[filteredPricesByCategory.length - 1].markupPercent
+                    priceSetByCategory = true;
                 }
                 setProductPrice(defaultProductPrice)
-            } else {
-                setProductPrice(selectedProduct.price)
             }
             if (filteredPrices) {
                 const priceTiersByProduct = filteredPrices.prices.map((pr,i) => {
@@ -71,14 +95,29 @@ function ProductSearch({ selectedProduct, setProductToAdd, setFilteredProductLis
                         title: filteredPrices.titles[i]
                     }
                 })
+                let defaultProductPrice = selectedProduct.price
+                if(!priceSetByCategory) {
+                    if(customerState) {
+                        const defaultPriceTierForCustomer = filteredPrices.customerGroups.findIndex((cg) => cg === customerState.defaultAccountGroup)
+                        if(defaultPriceTierForCustomer !== -1) {
+                            defaultProductPrice = filteredPrices.prices[defaultPriceTierForCustomer]
+                        } else {
+                            defaultProductPrice = filteredPrices.prices[filteredPrices.prices.length - 1]
+                        }
+                    } else {
+                        defaultProductPrice = filteredPrices.prices[filteredPrices.prices.length - 1]
+                    }
+                }
+                setProductPrice(defaultProductPrice)
                 priceTiersList = [...priceTiersList, ...priceTiersByProduct]
             }
 
             setProductPrices(priceTiersList)
+            // qtyRef?.current?.select()
         }
     }, [selectedProduct, setProductPrices, priceTiers, customerState, setProductPrice])
 
-
+const [editingQty, setEditingQty] = useState(false);
 
     useEffect(() => {
         if (selectedProduct != null) {
@@ -100,6 +139,9 @@ function ProductSearch({ selectedProduct, setProductToAdd, setFilteredProductLis
                 setProductNote("")
                 catchWeight.current = 1.0
                 setCatchWeightMax(null)
+            }
+            if(!editingQty) {
+                qtyRef?.current?.select()
             }
         }
     }, [selectedProduct, productPrices, setProductName, setProductUom, setProductPrice, productQty, setProductNote])
@@ -144,24 +186,67 @@ function ProductSearch({ selectedProduct, setProductToAdd, setFilteredProductLis
     }
 
     function addProduct() {
+        const numberQty = parseFloat(productQty)
+        const numberPrice = parseFloat(productPrice)
+        const chekInvalidData = verifyValidData(numberQty, numberPrice)
+        const availableQty = (selectedProduct.inventory - (selectedProduct.qtynotavailable + selectedProduct.qtyallocated))
+        let errorMessage = '';
+        let errorTitle = '';
+        if(chekInvalidData) {
+            switch(chekInvalidData) {
+                case 'qty':
+                    setFocusedElement('qty')
+                    errorMessage = t('Please input a valid quantity amount.')
+                    errorTitle = t('Invalid Quantity')
+                    break;
+                case 'price':
+                    setFocusedElement('price')
+                    errorMessage = t('Please input a valid price amount.')
+                    errorTitle = t('Invalid Price')
+                    break;
+            }
+            dispatch(
+                showError(
+                    {
+                        errorTile: errorTitle,
+                        errorBody: errorMessage,
+                        errorButton: t('ok'),
+                        showError: true,
+                    }
+                )
+            )
+        } else {
+            if (numberQty > availableQty) {
+                dispatch(
+                    showError(
+                        {
+                            errorTile: t('Invalid Quantity'),
+                            errorBody: t('The quantity exceeds the inventory available for this product, please verify in order summary, available inventory: ') + availableQty,
+                            errorButton: t('ok'),
+                            showError: true,
+                        }
+                    )
+                )
+            }
+            setProductToAdd({
+                productName: productName,
+                productNumber: selectedProduct.num,
+                chineseName: selectedProduct.chineseName,
+                quantity: (parseFloat(productQty) ?? 0) * catchWeight.current,
+                uom: selectedProduct.unitOfMeasure,
+                price: (parseFloat(productPrice) ?? 0.0),
+                note: productNote,
+                weight: selectedProduct.weight,
+                cost: selectedProduct.cost,
+            })
+            setProductName("")
+            setProductQty("")
+            setProductUom("")
+            setProductPrice("")
+            setProductNote("")
+            setFocusedElement('productNum')
+        }
         // setAddProductMode(true)
-        setProductToAdd({
-            productName: productName,
-            productNumber: selectedProduct.num,
-            chineseName: selectedProduct.chineseName,
-            quantity: (parseFloat(productQty) ?? 0) * catchWeight.current,
-            uom: selectedProduct.unitOfMeasure,
-            price: (parseFloat(productPrice) ?? 0.0),
-            note: productNote,
-            weight: selectedProduct.weight,
-            cost: selectedProduct.cost,
-        })
-        setProductName("")
-        setProductQty("")
-        setProductUom("")
-        setProductPrice("")
-        setProductNote("")
-        setFocusedElement('productNum')
     }
 
     function handleOnFocus(element) {
@@ -176,14 +261,18 @@ function ProductSearch({ selectedProduct, setProductToAdd, setFilteredProductLis
                 break;
             case 'qty':
                 console.log('ngsh qty is focused')
+                setEditingQty(false);
                 qtyRef?.current?.focus()
-                if(!productQty) {
-                    setProductQty(1);
-                }
+                qtyRef?.current?.select()
+                console.log(qtyRef)
+                // if(!productQty) {
+                //     setProductQty(1);
+                // }
                 break;
             case 'price':
                 console.log('ngsh price is focused')
                 priceRef?.current?.focus()
+                priceRef?.current?.select()
                 break;
             case 'note':
                 console.log('ngsh note is focused')
@@ -196,7 +285,7 @@ function ProductSearch({ selectedProduct, setProductToAdd, setFilteredProductLis
             default:
                 break;
         }
-    }, [focusedElement])
+    }, [focusedElement, errorState])
 
     function productNameKeyPress(e) {
         if (e.key === 'Enter') {  
@@ -226,10 +315,10 @@ function ProductSearch({ selectedProduct, setProductToAdd, setFilteredProductLis
         <div className="flex space-x-1 my-1">
             <div className="flex-auto">
                 <div className="flex space-x-1">
-                    <input ref={numRef} autoFocus onFocus={() => {handleOnFocus("productNum")}} onKeyUp={productNameKeyPress} autoComplete='off' onChange={(e) => { filterProducts(e.target.value); setProductName(e.target.value); }} value={productName} className="inputBox grow" type="text" placeholder={t("Product")} id="productSearch"></input>
-                    <input onChange={(e) => { setProductQty(e.target.value) }} onKeyUp={(e) => { if (e.key === 'Enter') { handleOnFocus('price') } }} onFocus={() => { handleOnFocus('qty') }} ref={qtyRef} autoComplete='off' value={productQty} className="inputBox w-32" type="text" placeholder={t("Qty")} id="productQty"></input>
+                    <input ref={numRef} autoFocus onFocus={(e) => {handleOnFocus("productNum"); e.target.select();}} onKeyUp={productNameKeyPress} autoComplete='off' onChange={(e) => { filterProducts(e.target.value); setProductName(e.target.value); }} value={productName} className="inputBox grow" type="text" placeholder={t("Product")} id="productSearch"></input>
+                    <input onChange={(e) => { setProductQty(e.target.value); setEditingQty(true); }} onKeyUp={(e) => { if (e.key === 'Enter') { handleOnFocus('price') } }} onFocus={(e) => { handleOnFocus('qty'); e.target.select(); }} ref={qtyRef} autoComplete='off' value={productQty} className="inputBox w-32" placeholder={t("Qty")} id="productQty"></input>
                     <input onChange={(e) => { setProductUom(e.target.value) }} disabled={true} onFocus={() => { handleOnFocus('uom') }} autoComplete='off' value={productUom} className="inputBox w-32" type="text" placeholder={t("UOM")} id="productUom"></input>
-                    <input ref={priceRef} autoComplete='off' onChange={(e) => { setProductPrice(e.target.value) }} onKeyUp={(e) => { if (e.key === 'Enter') { handleOnFocus('productNum'); addProduct(); } }} onFocus={() => { handleOnFocus('price') }} value={productPrice} list='priceList' className="inputBox w-32" type="text" placeholder={t("Price")} id="productPrice" />
+                    <input ref={priceRef} autoComplete='off' onChange={(e) => { setProductPrice(e.target.value) }} onKeyUp={(e) => { if (e.key === 'Enter') { handleOnFocus('productNum'); addProduct(); } }} onFocus={(e) => { handleOnFocus('price'); e.target.select(); }} value={productPrice} list='priceList' className="inputBox w-32"   placeholder={t("Price")} id="productPrice" />
                     <datalist id='priceList'>
                         {
                             productPrices !== null && productPrices !== undefined && productPrices.map((it, i) => {

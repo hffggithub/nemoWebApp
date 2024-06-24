@@ -15,9 +15,19 @@ export function consolidateLineItemsData(items, productsCache) {
             price: it.price,
             note: it.note ?? '',
             weight: productInCache?.weight ?? 0.0,
-            cost: productInCache.cost ?? 0.0,
+            cost: productInCache?.cost ?? 0.0,
+            lineItemNumber: it.lineItemNumber ?? null,
         })
     })
 
     return soItems;
+}
+
+export function verifyValidData(qty, price) {
+    if (isNaN(qty) || qty < 1.0){
+        return 'qty'
+    } else if( isNaN(price) || price < 0.0) {
+        return 'price'
+    }
+    return undefined
 }

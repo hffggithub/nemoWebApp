@@ -3,7 +3,7 @@ import { useLocalStorage } from "@uidotdev/usehooks";
 import axios from "axios";
 import { useEffect, useState } from "react";
 import { useTranslation, withTranslation, Trans } from 'react-i18next';
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { clearDistributionCenter } from "../../slices/distributionCenterSlice";
 import hffLogoUrl from '../../assets/horizontal-logo-black.svg'
 import { clearSelectedCustomer } from "../../slices/customerSlice";
@@ -29,9 +29,11 @@ function Navbar({ setNavOption, navOption, distributionCenter, subclass, setDist
     const { t, i18n } = useTranslation();
 
     const [token, saveToken] = useLocalStorage("token", null);
+    const [savedUsername, saveUsername] = useLocalStorage("username", null);
     const [tryLogout, setTryLogout] = useState(false);
     const [activeLanguage, setActiveLanguage] = useState('en');
     const dispatch = useDispatch();
+    const selectedProductTab = useSelector(state => state.navBar.value.selectedTab)
 
     useEffect(() => {
         i18n.changeLanguage(activeLanguage);
@@ -42,7 +44,7 @@ function Navbar({ setNavOption, navOption, distributionCenter, subclass, setDist
         const attemptLogout = async () => {
             try{
                 const { data } = await axios.post(
-                    import.meta.env.VITE_API_BASE_URL + "auth/logout",
+                    NEMO_API_HOST + "auth/logout",
                     {},
                     {
                         headers: { 'Authorization': `Bearer ${token}` }
@@ -57,6 +59,7 @@ function Navbar({ setNavOption, navOption, distributionCenter, subclass, setDist
                     setSubclass(null);
                     saveToken(null);
                     setProductsOnOrder([]);
+                    saveUsername(null);
                 }
             } catch(ex) {
                 console.log(ex)
@@ -73,7 +76,7 @@ function Navbar({ setNavOption, navOption, distributionCenter, subclass, setDist
         <>
             <nav className="nav-bar">
                 <div className="max-w-screen-xl flex flex-wrap items-center justify-between mx-auto py-4">
-                    <div className="flex items-center space-x-3 rtl:space-x-reverse">
+                    <div className="flex flex-row space-x-3">
                         <img src={hffLogoUrl} className="h-10 w-96 object-fill" alt="HF Foods Logo" />
                         {/* <span className="self-center text-2xl font-semibold whitespace-nowrap">HF Foods Group</span> */}
                         {/* {(token !== null && distributionCenter !== null && subclass !== null) && <ul className="flex flex-col font-medium mt-4 rounded-lg  md:space-x-8 rtl:space-x-reverse md:flex-row md:mt-0 md:border-0 md:bg-transparent">
@@ -88,6 +91,12 @@ function Navbar({ setNavOption, navOption, distributionCenter, subclass, setDist
                             }
                             )}
                         </ul> } */}
+                    {(token !== null && distributionCenter !== null && subclass !== null) && <div className='tab flex flex-row rounded-lg text-sm'>
+                            <button id='productTab' className={' cursor-not-allowed ' + (selectedProductTab === 0 ? 'tablinks active' : 'tablinks')} >{t('Customer search')}</button>
+                            <button id='productHistoryTab' className={' cursor-not-allowed ' + (selectedProductTab === 1 ? 'tablinks active' : 'tablinks')} >{t('New order')}</button>
+                            <button id='orderHistoryTab' className={' cursor-not-allowed ' + (selectedProductTab === 2 ? 'tablinks active' : 'tablinks')} >{t('Order Lookup')}</button>
+                        </div>}
+                    
                     </div>
                     <div className="w-full md:block md:w-auto" id="navbar-solid-bg">
                         <div className="flex items-center space-x-3 rtl:space-x-reverse">

@@ -6,6 +6,7 @@ import distributionCenterReducer from './slices/distributionCenterSlice'
 import navReducer from './slices/navSlice'
 import subclassReduce from './slices/subclassSlice'
 import orderReducer from './slices/orderSlice'
+import navBarReducer from './slices/navBarSlice'
 
 const store = configureStore({
   reducer: {
@@ -16,6 +17,7 @@ const store = configureStore({
     nav: navReducer,
     subclass: subclassReduce,
     order: orderReducer,
+    navBar: navBarReducer,
   }
 });
 

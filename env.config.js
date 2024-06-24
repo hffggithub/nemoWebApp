@@ -1,0 +1,1 @@
+var NEMO_API_HOST = "http://nemo1.hffg.local:9091/api/";

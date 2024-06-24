@@ -8,6 +8,7 @@ export const errorSlice = createSlice({
         errorBody: '',
         errorButton: '',
         showError: false,
+        extraInfo: null,
     }
   },
   reducers: {
@@ -17,10 +18,14 @@ export const errorSlice = createSlice({
         errorBody: '',
         errorButton: '',
         showError: false,
+        extraInfo: null,
     }
     },
     showError: (state, action) => {
-      state.value = action.payload
+      state.value = {
+        ...action.payload,
+        extraInfo: action.payload.extraInfo ?? null,
+      }
     }
   }
 })

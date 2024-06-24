@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next";
 import { useDispatch } from "react-redux";
 import { clearSelectedCustomer } from "../../slices/customerSlice";
 
-function CustomerInfo({ customer, setCustomerShippingAddress, showCustomerAddress }) {
+function CustomerInfo({ customer, setCustomerShippingAddress, selectedShippingAddress, showCustomerAddress }) {
 
     const { t } = useTranslation()
     const dispatch = useDispatch();
@@ -16,7 +16,8 @@ function CustomerInfo({ customer, setCustomerShippingAddress, showCustomerAddres
     const [description, setDescription] = useState(customer.shippingAddress.description)
     const [customerAddresses, setCustomerAddresses] = useState(customer.addresses)
     const [modifyAddress, setModifyAddress] = useState(false)
-    const chineseName = customer.chineseName ? "- " + customer.chineseName : customer.number === "TNG-0121" ? "- " + "陈老板娘" : "";
+    const chineseName = customer.chineseName ? "- " + customer.chineseName : "";
+    const [indexAddressSelected, setIndexAddressSelected] = useState(0);
 
     useEffect(() => {
         setCustomerShippingAddress(
@@ -32,8 +33,25 @@ function CustomerInfo({ customer, setCustomerShippingAddress, showCustomerAddres
         )
     }, [street, city, state, zip, country, toLine, description, setCustomerShippingAddress])
 
+    useEffect(() => {
+        for(let i=0;i<customerAddresses.length; i++) {
+            const address = customerAddresses[i]
+            if(
+                address.street === selectedShippingAddress.street &&
+                address.city === selectedShippingAddress.city &&
+                address.state === selectedShippingAddress.state &&
+                address.country === selectedShippingAddress.country &&
+                address.zip === selectedShippingAddress.zip
+            ) {
+                setIndexAddressSelected(i);
+                break;
+            }
+        }
+    }, [selectedShippingAddress])
+
 
     function changeCustomerAddress(index) {
+        setIndexAddressSelected(index);
         const address = customerAddresses[index]
         setStreet(address.street)
         setCity(address.city)
@@ -50,7 +68,7 @@ function CustomerInfo({ customer, setCustomerShippingAddress, showCustomerAddres
                 <div className="flex-initial">
                     <div className="grid grid-cols-2 gap-y-2">
                         <div className="flex flex-initial flex-row center col-span-2">
-                            <h1 className="flex-auto self-center text-center">[{customer.number}] {customer.name} {chineseName}</h1>
+                            <h1 className="flex-auto self-center text-center font-bold text-lg">{t('Customer')}: [{customer.number}] {customer.name} {chineseName}</h1>
                             <button onClick={() => { dispatch(clearSelectedCustomer()) }} className="primary-button rounded-lg p-1">{t('Change')}</button>
                         </div>
                         <span className="flex">
@@ -62,7 +80,7 @@ function CustomerInfo({ customer, setCustomerShippingAddress, showCustomerAddres
                         <span className="flex col-span-2 align-middle">
                             <span className="text-right mr-3 w-1/6 self-center">{t('Shipping Address')}:</span>
                             <span className="flex-grow">
-                                <select onChange={(e) => { changeCustomerAddress(e.target.value) }} className="flex-auto w-full border rounded-lg py-1 px-3" id="addressSelect" defaultValue={customer.shippingAddress}>
+                                <select onChange={(e) => { changeCustomerAddress(e.target.value) }} className="flex-auto w-full border rounded-lg py-1 px-3" id="addressSelect" value={indexAddressSelected}>
                                     {customerAddresses.map((it, i) => {
                                         return (<option key={i} value={i}>{`${it.street}, ${it.city}, ${it.state}, ${it.country}, ${it.zip}`}</option>)
                                     })}

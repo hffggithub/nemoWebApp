@@ -106,7 +106,7 @@ export default cacheSlice.reducer
 
 async function fetchDataFromAPI(endpoint, token) {
     const response = await axios.get(
-        import.meta.env.VITE_API_BASE_URL + endpoint,
+        NEMO_API_HOST + endpoint,
         {
             headers: { 'Authorization': `Bearer ${token}` }
         }
@@ -155,7 +155,11 @@ export const fetchCustomers = createAsyncThunk('cache/fetchCustomers', async (op
 
 export const fetchProducts = createAsyncThunk('cache/fetchProducts', async (options) => {
     const { token, shouldCheckLocalStorage = true, params } = options;
-    const data = await fetchData('products', token, shouldCheckLocalStorage, params)
+    const { locationGroupName } = params;
+    let data = await fetchData('products', token, shouldCheckLocalStorage, params)
+    data = data.filter( x => {
+        return x.distributionCenter === locationGroupName
+    } )
     return data
 })
 
