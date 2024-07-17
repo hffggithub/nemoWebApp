@@ -45,6 +45,11 @@ function Order({ productsOnOrder, setProductsOnOrder }) {
     const [orderErrorAcnkowledged, setOrderErrorAcnkowledged] = useState(false)
     const errorState = useSelector(state => state.error.value.showError)
     const [savedUsername, saveUsername] = useLocalStorage("username", null);
+    const [originalOrder, setOriginalOrdel] = useState(null);
+
+    useEffect(() => {
+
+    }, [orderInContextState]);
 
     dispatch(selectTab(1))
 
@@ -229,7 +234,7 @@ function Order({ productsOnOrder, setProductsOnOrder }) {
                             showError(
                                 {
                                     errorTile: t('Invalid request'),
-                                    errorBody: t(`Not enough invenotry to fulfill order, please vefiry the following items in the order. If this is intended please send the order again.`),
+                                    errorBody: t(`There is not enough inventory to fulfill the order, please verify the following items in the order. If this is intended please send the order again.`),
                                     errorButton: t('ok'),
                                     extraInfo: invalidItmes,
                                     showError: true,
@@ -279,8 +284,8 @@ function Order({ productsOnOrder, setProductsOnOrder }) {
                     dispatch(
                         showError(
                             {
-                                errorTile: t('Invalid request'),
-                                errorBody: t(`It was not possible to ${orderAction} the order`),
+                                errorTile: t('Error'),
+                                errorBody: t(`It was not possible to ${orderAction} the order, please try again.`),
                                 errorButton: t('ok'),
                                 showError: true,
                             }
@@ -323,6 +328,7 @@ function Order({ productsOnOrder, setProductsOnOrder }) {
         }])
         setSelectedProduct(null)
         setPRedifinedQty(null)
+        setOrderErrorAcnkowledged(false)
         if(selectedProductTab !== 2) {
             setSelectedProductTab(0)
         }
@@ -414,7 +420,7 @@ function Order({ productsOnOrder, setProductsOnOrder }) {
     }
 
     function cancelOrderEdit() {
-        if(productsOnOrder.length > 0) {
+        if(checkIfOrderIsEdited()) {
             dispatch(
                 showError(
                     {
@@ -430,6 +436,34 @@ function Order({ productsOnOrder, setProductsOnOrder }) {
             dispatch(clearSelectedCustomer());
             dispatch(clearOrderInContext());
         }
+    }
+
+    function checkIfOrderIsEdited() {
+        let changeFound = false;
+        if(orderInContextState) {
+            const productsInOrderInContextState = orderInContextState.lineItems
+            if(productsInOrderInContextState.length > 0) {
+                if(productsInOrderInContextState.length !== productsOnOrder.length) {
+                    changeFound = true;
+                } else {
+                    productsInOrderInContextState.forEach((element, index) => {
+                        const productInOrderList = productsOnOrder[index];
+                        if(
+                            element.lineItemNumber !== productInOrderList.lineItemNumber ||
+                            element.productNumber !== productInOrderList.productNumber ||
+                            element.quantity !== productInOrderList.quantity ||
+                            element.price !== productInOrderList.price ||
+                            element.note !== productInOrderList.note
+                        ) {
+                            changeFound = true;
+                        }
+                    });
+                }
+            }
+        } else if (productsOnOrder.length > 0) { 
+            changeFound = true;
+        }
+        return changeFound;
     }
 
     function selectProductFromUpsell(product) {

@@ -91,7 +91,7 @@ function Navbar({ setNavOption, navOption, distributionCenter, subclass, setDist
                             }
                             )}
                         </ul> } */}
-                    {(token !== null && distributionCenter !== null && subclass !== null) && <div className='tab flex flex-row rounded-lg text-sm'>
+                    {(token !== null && distributionCenter !== null && subclass !== null) && <div className='nav-tab flex flex-row rounded-lg text-sm'>
                             <button id='productTab' className={' cursor-not-allowed ' + (selectedProductTab === 0 ? 'tablinks active' : 'tablinks')} >{t('Customer search')}</button>
                             <button id='productHistoryTab' className={' cursor-not-allowed ' + (selectedProductTab === 1 ? 'tablinks active' : 'tablinks')} >{t('New order')}</button>
                             <button id='orderHistoryTab' className={' cursor-not-allowed ' + (selectedProductTab === 2 ? 'tablinks active' : 'tablinks')} >{t('Order Lookup')}</button>

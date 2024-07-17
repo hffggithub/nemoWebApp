@@ -144,12 +144,12 @@ function OrderLookup({ setProductsOnOrder }) {
         { headerName: t('Order ID'), field: "num", width: 135 },
         { headerName: t("Customer ID"), field: "customerNumber", width: 130 },
         { headerName: t("Customer Name"), field: "customerName", flex: 2 },
+        { headerName: t('Scheduled Shipment'), field: "scheduledDate", valueFormatter: params => params.value.split('T')[0], width: 170 },
         { headerName: t('Created By'), field: "createdBy", width: 120 },
         { headerName: t('Created'), field: "createdDate", valueFormatter: params => params.value.split('T')[0], width: 120 },
         { headerName: t('Modified By'), field: "lastModifiedBy", width: 120 },
         { headerName: t('Modified'), field: "lastModifiedDate", valueFormatter: params => params.value?.split('T')[0], width: 120 },
         { headerName: t('Status'), field: "statusId", valueFormatter: params => t(getOrderStatusStatus(params.value)), width: 120 },
-        { headerName: t('Tax Rate'), field: "taxRate", width: 90, valueFormatter: currencyFormatter, type: 'rightAligned' },
         { headerName: t('Total Price'), field: "totalPrice", width: 100, valueFormatter: currencyFormatter, type: 'rightAligned' },
         { headerName: t('Items'), field: "lineItems", valueFormatter: params => params.value.length, width: 90, type: 'rightAligned' },
         { headerName: '', valueGetter: (p) => p.data, cellRenderer: ActionButtons, width: 90, type: 'centerAligned', resizable: false }
@@ -210,11 +210,21 @@ function OrderLookup({ setProductsOnOrder }) {
         const lowFilter = filter.toLowerCase()
         const result = orderList.filter((so) => {
             const status = t(getOrderStatusStatus(so.statusId)).toLowerCase()
+            const createdFilter =  so.createdDate?.split('T')[0].toLowerCase().includes(lowFilter) ?? false;
+            const modifiedFilter =  so.createdDate?.split('T')[0].toLowerCase().includes(lowFilter) ?? false;
+            const scheduledFilter =  so.createdDate?.split('T')[0].toLowerCase().includes(lowFilter) ?? false;
+            const modifiedByFilter = so.lastModifiedBy?.toLowerCase().includes(lowFilter) ?? false;
+            const createdByFilter = so.createdBy?.toLowerCase().includes(lowFilter) ?? false;
             return (so.num.toLowerCase().includes(lowFilter) ||
-                so.createdDate.toLowerCase().includes(lowFilter) ||
+                so.createdDate.split('T')[0].toLowerCase().includes(lowFilter) ||
                 status.includes(lowFilter) ||
                 so.customerNumber.toLowerCase().includes(lowFilter) ||
-                so.customerName.toLowerCase().includes(lowFilter)
+                so.customerName.toLowerCase().includes(lowFilter) ||
+                createdByFilter ||
+                modifiedByFilter ||
+                scheduledFilter ||
+                modifiedFilter ||
+                createdFilter
             )
         })
 
@@ -344,7 +354,7 @@ function OrderLookup({ setProductsOnOrder }) {
                 <button onClick={() => { dispatch(clearSelectedCustomer()); dispatch(returnHome()) }} className='primary-button flex-none'>{t('Back')}</button>
                 <input type='text' onKeyDown={searchFIeldKeyDown} autoFocus autoComplete='off' onFocus={() => { onHandleFocus('search') }} onKeyUp={searchFieldKeyPress} onChange={(e) => { filterList(e.target.value) }} className='inputBox grow' placeholder={t('Search')} id='orderSearchInput'></input>
                 <span className="pl-2 datePicker">
-                    <label for="startDateInput" className='self-center'>{t('From')}</label>
+                    <label for="startDateInput" className='self-center'>{t('Created')+" "+ t('From')}</label>
                     <input type='date' max={formatDate(endDate, "yyyy-mm-dd")} value={formatDate(startDate, "yyyy-mm-dd")} onChange={(e) => { setStartDate(getDateWithoutTimezone(new Date(e.target.value))) }} id='startDateInput' />
                     <label for="endDateInput" className='self-center'>{t('To')}</label>
                     <input type='date' min={formatDate(startDate, "yyyy-mm-dd")} value={formatDate(endDate, "yyyy-mm-dd")} onChange={(e) => { setEndDate(getDateWithoutTimezone(new Date(e.target.value))) }} id='endDateInput' />

@@ -19,6 +19,7 @@ function Customer({ productsInOrder }) {
     const { t } = useTranslation();
     const dispatch = useDispatch();
     const customerListFromCache = useSelector(state => state.cache.customers);
+    const isChangingCustomerState = useSelector(state => state.customer.changingCustomer);
     const [customerList, setCustomerList] = useState([]);
     const [orderLookup, setOrderLookup] = useState(false)
     const [shouldFetchOrders, setShouldFetchOrders] = useState(false)
@@ -96,7 +97,7 @@ function Customer({ productsInOrder }) {
                     //     )
                     // } else {
 
-                        if (orders && productsInOrder.length === 0) {
+                        if (orders && !isChangingCustomerState) {
                             if(orders.length > 0) {
                                 dispatch(setOrderInContext(orders[0]))
                                 dispatch(
