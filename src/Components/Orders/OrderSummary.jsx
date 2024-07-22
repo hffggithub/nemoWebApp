@@ -46,6 +46,10 @@ function OrderSummary({ productList, setProductList, showRemoveButton, orderInfo
             if(it.index === index) {
                 console.log(`ngsh index qty ${it}`)
                 let copy = it
+                if(it.catchWeightMax) {
+                    let caseQty = Math.ceil(qty / it.catchWeightMax);
+                    copy.note = `Grab ${caseQty} ${caseQty === 1.0 ? 'case' : 'cases' }.`
+                }
                 copy.quantity = qty
                 return copy                
             }
@@ -128,10 +132,11 @@ function OrderSummary({ productList, setProductList, showRemoveButton, orderInfo
             let marginAux = 0.0;
             let costAux = 0.0;
             productList.forEach(element => {
+                const itemWeightCW = element.catchWeightMax ? Math.ceil(element.quantity / element.catchWeightMax) * element.catchWeightMax : null;
                 console.log('elemnt weight',element.weight);
                 subTotalAux += element.quantity * element.price
-                grossWeightAux += element.quantity * element.weight
-                netWeightAux += element.quantity * element.weight
+                grossWeightAux += itemWeightCW ? itemWeightCW : element.quantity * element.weight
+                netWeightAux += itemWeightCW ? itemWeightCW : element.quantity * element.weight
                 costAux += element.cost * element.quantity
             });
 
@@ -195,20 +200,20 @@ function OrderSummary({ productList, setProductList, showRemoveButton, orderInfo
                             <span className='text-right mr-3 w-1/2'>{t('Net Weight')}:</span><span className='text-right grow'>{netWeight.toLocaleString('en-US', {minimumFractionDigits:2})}</span>
                         </span>
                         {orderInfo && (<span className="flex">
-                            <span className='text-right mr-3 w-1/2'>{t('Margin')}:</span><span className='text-right grow'>{((margin/100) * total).toLocaleString('en-US', {minimumFractionDigits:2})}</span>
+                            <span className='text-right mr-3 w-1/2'>{t('Margin')}:</span><span className='text-right grow'>${((margin/100) * total).toLocaleString('en-US', {minimumFractionDigits:2})}</span>
                             <span className='text-right grow'>({margin.toLocaleString('en-US', {minimumFractionDigits:2})}%)</span>
                         </span>)}
                     </>
                 </div>
                 <div className="grid grid-cols-1 text-right">
                     <span className="flex">
-                        <span className='text-right mr-3 w-1/2'>{t('Sub total')}:</span><span className='text-right grow'>{subTotal.toLocaleString('en-US', {minimumFractionDigits:2})}</span>
+                        <span className='text-right mr-3 w-1/2'>{t('Sub total')}:</span><span className='text-right grow'>${subTotal.toLocaleString('en-US', {minimumFractionDigits:2})}</span>
                     </span>
                     <span className="flex">
-                        <span className='text-right mr-3 w-1/2'>{t('Tax')}:</span><span className='text-right grow'>{tax.toLocaleString('en-US', {minimumFractionDigits:2})}</span>
+                        <span className='text-right mr-3 w-1/2'>{t('Tax')}:</span><span className='text-right grow'>${tax.toLocaleString('en-US', {minimumFractionDigits:2})}</span>
                     </span>
                     <span className="flex">
-                        <span className='text-right mr-3 w-1/2'>{t('Total')}:</span><span className='text-right grow'>{total.toLocaleString('en-US', {minimumFractionDigits:2})}</span>
+                        <span className='text-right mr-3 w-1/2'>{t('Total')}:</span><span className='text-right grow'>${total.toLocaleString('en-US', {minimumFractionDigits:2})}</span>
                     </span>
                 </div>
             </div>

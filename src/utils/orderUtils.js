@@ -5,6 +5,8 @@ export function consolidateLineItemsData(items, productsCache) {
             return it.productNumber === prod.num
         })
         console.log(productInCache)
+        const catchWeight =  productInCache ? searchCustomFieldValue(productInCache?.customFieldsMap, 'Max Catch Weight') : null
+        console.log('catchweight prod', catchWeight)
         return ({
             index: index,
             productName: productInCache?.description ?? it.productName,
@@ -17,10 +19,24 @@ export function consolidateLineItemsData(items, productsCache) {
             weight: productInCache?.weight ?? 0.0,
             cost: productInCache?.cost ?? 0.0,
             lineItemNumber: it.lineItemNumber ?? null,
+            catchWeightMax: catchWeight,
+            status: it.statusId ?? undefined,
         })
     })
 
     return soItems;
+}
+
+
+
+export function searchCustomFieldValue(customFields, fieldToSearch) {
+    for (const field in customFields) {
+        const auxField = customFields[field];
+        if (auxField.name === fieldToSearch) {
+            return auxField.value
+        }
+    }
+    return null
 }
 
 export function verifyValidData(qty, price) {

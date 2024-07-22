@@ -39,7 +39,7 @@
   "Product": "商品",
   "Qty": "数量",
   "UOM": "单位",
-  "Note": "注释",
+  "Note": "备注",
   "Add Product": "添加商品",
   "Customer info": "客户信息",
   "Id": "商品编号",
@@ -115,5 +115,9 @@
   "Grab (QTY) cases": "抓 (QTY)箱",
   "Created By": "创建人",
   "Modified By": "修改人",
-  "Modified": "修改日期"
+  "Modified": "修改日期",
+  "cn": "中文",
+  "Requested": "订购数量",
+  "There is not enough inventory to fulfill the order, please verify the following items in the order. If this is intended please send the order again.":"库存不足，无法完成订单，请核实订单中的以下物品。如果需要，请重新发送订单。",
+  "The quantity exceeds the inventory available for this product, please verify in order summary, available inventory: ": "数量超出该产品的可用库存，请在订单汇总中核实，可用库存："
 }

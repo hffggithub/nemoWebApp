@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useDispatch } from "react-redux";
-import { clearSelectedCustomer } from "../../slices/customerSlice";
+import { startChangeSelectedCustomer } from "../../slices/customerSlice";
 
-function CustomerInfo({ customer, setCustomerShippingAddress, selectedShippingAddress, showCustomerAddress }) {
+function CustomerInfo({ customer, setCustomerShippingAddress, selectedShippingAddress, showCustomerAddress, isEditOrderMode }) {
 
     const { t } = useTranslation()
     const dispatch = useDispatch();
@@ -69,7 +69,7 @@ function CustomerInfo({ customer, setCustomerShippingAddress, selectedShippingAd
                     <div className="grid grid-cols-2 gap-y-2">
                         <div className="flex flex-initial flex-row center col-span-2">
                             <h1 className="flex-auto self-center text-center font-bold text-lg">{t('Customer')}: [{customer.number}] {customer.name} {chineseName}</h1>
-                            <button onClick={() => { dispatch(clearSelectedCustomer()) }} className="primary-button rounded-lg p-1">{t('Change')}</button>
+                            {!isEditOrderMode && <button onClick={() => { dispatch(startChangeSelectedCustomer()) }} className="primary-button rounded-lg p-1">{t('Change')}</button>}
                         </div>
                         <span className="flex">
                             <span className="text-right mr-3 w-1/3 self-center">{t('Contact')}:</span><span className="">{customer.contactName}</span>

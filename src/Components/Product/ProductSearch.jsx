@@ -238,13 +238,14 @@ const [editingQty, setEditingQty] = useState(false);
                 note: productNote,
                 weight: selectedProduct.weight,
                 cost: selectedProduct.cost,
+                catchWeightMax: catchWeightMax,
             })
             setProductName("")
             setProductQty("")
             setProductUom("")
             setProductPrice("")
             setProductNote("")
-            setFocusedElement('productNum')
+            // setFocusedElement('productNum')
         }
         // setAddProductMode(true)
     }
@@ -254,41 +255,44 @@ const [editingQty, setEditingQty] = useState(false);
     }
 
     useEffect(() => {
-        switch (focusedElement) {
-            case 'productNum':
-                console.log('ngsh productNum is focused')
-                numRef?.current?.focus()
-                break;
-            case 'qty':
-                console.log('ngsh qty is focused')
-                setEditingQty(false);
-                qtyRef?.current?.focus()
-                qtyRef?.current?.select()
-                console.log(qtyRef)
-                // if(!productQty) {
-                //     setProductQty(1);
-                // }
-                break;
-            case 'price':
-                console.log('ngsh price is focused')
-                priceRef?.current?.focus()
-                priceRef?.current?.select()
-                break;
-            case 'note':
-                console.log('ngsh note is focused')
-                noteRef?.current?.focus()
-                break;
-            case 'add':
-                console.log('ngsh add is focused')
-                addRef?.current?.focus()
-                break;
-            default:
-                break;
+        if(!errorState) {
+            console.log("ngsh focused element", focusedElement)
+            switch (focusedElement) {
+                case 'productNum':
+                    console.log('ngsh productNum is focused')
+                    numRef?.current?.focus()
+                    break;
+                case 'qty':
+                    console.log('ngsh qty is focused')
+                    setEditingQty(false);
+                    qtyRef?.current?.focus()
+                    qtyRef?.current?.select()
+                    console.log(qtyRef)
+                    // if(!productQty) {
+                    //     setProductQty(1);
+                    // }
+                    break;
+                case 'price':
+                    console.log('ngsh price is focused')
+                    priceRef?.current?.focus()
+                    priceRef?.current?.select()
+                    break;
+                case 'note':
+                    console.log('ngsh note is focused')
+                    noteRef?.current?.focus()
+                    break;
+                case 'add':
+                    console.log('ngsh add is focused')
+                    addRef?.current?.focus()
+                    break;
+                default:
+                    break;
+            }
         }
     }, [focusedElement, errorState])
 
     function productNameKeyPress(e) {
-        if (e.key === 'Enter') {  
+        if (e.key === 'Enter' && enableEnterAction) {  
             // if (!addProductMode) {
                 selectCurrentProduct(); 
                 // handleOnFocus('qty') 
@@ -311,14 +315,34 @@ const [editingQty, setEditingQty] = useState(false);
         }
     }
 
+    const [enableEnterAction, setEnableEnterAction] = useState(false);
+
+    function onKeyDown(e) {
+        if (e.key === 'Enter') { 
+            setEnableEnterAction(true)
+        }
+    }
+
+    
+    function onKeyUp(e, nextFocus) {
+
+        if (e.key === 'Enter' && enableEnterAction) { 
+            setEnableEnterAction(false)
+            handleOnFocus(nextFocus)
+            if('productNum' === nextFocus) {
+                addProduct()
+            }
+        }
+    }
+
     return (
         <div className="flex space-x-1 my-1">
             <div className="flex-auto">
                 <div className="flex space-x-1">
-                    <input ref={numRef} autoFocus onFocus={(e) => {handleOnFocus("productNum"); e.target.select();}} onKeyUp={productNameKeyPress} autoComplete='off' onChange={(e) => { filterProducts(e.target.value); setProductName(e.target.value); }} value={productName} className="inputBox grow" type="text" placeholder={t("Product")} id="productSearch"></input>
-                    <input onChange={(e) => { setProductQty(e.target.value); setEditingQty(true); }} onKeyUp={(e) => { if (e.key === 'Enter') { handleOnFocus('price') } }} onFocus={(e) => { handleOnFocus('qty'); e.target.select(); }} ref={qtyRef} autoComplete='off' value={productQty} className="inputBox w-32" placeholder={t("Qty")} id="productQty"></input>
+                    <input ref={numRef} autoFocus onKeyDown={(e) => {onKeyDown(e)}} onFocus={(e) => {handleOnFocus("productNum"); e.target.select();}} onKeyUp={productNameKeyPress} autoComplete='off' onChange={(e) => { filterProducts(e.target.value); setProductName(e.target.value); }} value={productName} className="inputBox grow" type="text" placeholder={t("Product")} id="productSearch"></input>
+                    <input onKeyDown={(e) => {onKeyDown(e)}}  onChange={(e) => { setProductQty(e.target.value); setEditingQty(true); }} onKeyUp={(e) => { onKeyUp(e, 'price') }} onFocus={(e) => { handleOnFocus('qty'); e.target.select(); }} ref={qtyRef} autoComplete='off' value={productQty} className="inputBox w-32" placeholder={t("Qty")} id="productQty"></input>
                     <input onChange={(e) => { setProductUom(e.target.value) }} disabled={true} onFocus={() => { handleOnFocus('uom') }} autoComplete='off' value={productUom} className="inputBox w-32" type="text" placeholder={t("UOM")} id="productUom"></input>
-                    <input ref={priceRef} autoComplete='off' onChange={(e) => { setProductPrice(e.target.value) }} onKeyUp={(e) => { if (e.key === 'Enter') { handleOnFocus('productNum'); addProduct(); } }} onFocus={(e) => { handleOnFocus('price'); e.target.select(); }} value={productPrice} list='priceList' className="inputBox w-32"   placeholder={t("Price")} id="productPrice" />
+                    <input onKeyDown={(e) => {onKeyDown(e)}}  ref={priceRef} autoComplete='off' onChange={(e) => { setProductPrice(e.target.value) }} onKeyUp={(e) => { onKeyUp(e, 'productNum'); }} onFocus={(e) => { handleOnFocus('price'); e.target.select(); }} value={productPrice} list='priceList' className="inputBox w-32"   placeholder={t("Price")} id="productPrice" />
                     <datalist id='priceList'>
                         {
                             productPrices !== null && productPrices !== undefined && productPrices.map((it, i) => {
@@ -328,7 +352,7 @@ const [editingQty, setEditingQty] = useState(false);
                     </datalist>
                 </div>
                 <div className="flex space-x-1 mt-2">
-                    <input ref={noteRef} onChange={(e) => { setProductNote(e.target.value) }} onKeyUp={(e) => { if (e.key === 'Enter') { handleOnFocus('add') } }} autoComplete='off' onFocus={() => { handleOnFocus('note') }} value={productNote} className="inputBox flex-auto" type="text" placeholder={notePlaceHolder} id="productNote"></input>
+                    <input ref={noteRef} onChange={(e) => { setProductNote(e.target.value) }} onKeyDown={(e) => {onKeyDown(e)}}  onKeyUp={(e) => { onKeyUp(e, 'productNum');  }} autoComplete='off' onFocus={() => { handleOnFocus('note') }} value={productNote} className="inputBox flex-auto" type="text" placeholder={notePlaceHolder} id="productNote"></input>
                 </div>
             </div>
             <div className='space-y-2.5 flex-col'>
