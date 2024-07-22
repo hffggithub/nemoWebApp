@@ -486,7 +486,7 @@ function Order({ productsOnOrder, setProductsOnOrder }) {
                     <div className="flex-initial w-1/2">
                         <div className='flex flex-col'>
                             <div>
-                                <CustomerInfo selectedShippingAddress={orderInContextState?.shippingAddress ?? customerState.shippingAddress} customer={customerState} setCustomerShippingAddress={setCustomerShippingAddress} showCustomerAddress={true} />
+                                <CustomerInfo selectedShippingAddress={orderInContextState?.shippingAddress ?? customerState.shippingAddress} customer={customerState} setCustomerShippingAddress={setCustomerShippingAddress} showCustomerAddress={true} isEditOrderMode={orderInContextState && orderInContextState.num} />
                             </div>
                             <div className='grid grid-cols-2 mx-2 mt-2 gap-y-2 gap-x-1'>
                                 <div className='flex'>
