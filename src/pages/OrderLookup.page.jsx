@@ -355,9 +355,9 @@ function OrderLookup({ setProductsOnOrder }) {
                 <input type='text' onKeyDown={searchFIeldKeyDown} autoFocus autoComplete='off' onFocus={() => { onHandleFocus('search') }} onKeyUp={searchFieldKeyPress} onChange={(e) => { filterList(e.target.value) }} className='inputBox grow' placeholder={t('Search')} id='orderSearchInput'></input>
                 <span className="pl-2 datePicker">
                     <label for="startDateInput" className='self-center'>{t('Created')+" "+ t('From')}</label>
-                    <input type='date' max={formatDate(endDate, "yyyy-mm-dd")} value={formatDate(startDate, "yyyy-mm-dd")} onChange={(e) => { setStartDate(getDateWithoutTimezone(new Date(e.target.value))) }} id='startDateInput' />
+                    <input type='date' max={formatDate(endDate, "yyyy-mm-dd")} defaultValue={formatDate(startDate, "yyyy-mm-dd")} onChange={(e) => { setStartDate(getDateWithoutTimezone(new Date(e.target.value))) }} id='startDateInput' />
                     <label for="endDateInput" className='self-center'>{t('To')}</label>
-                    <input type='date' min={formatDate(startDate, "yyyy-mm-dd")} value={formatDate(endDate, "yyyy-mm-dd")} onChange={(e) => { setEndDate(getDateWithoutTimezone(new Date(e.target.value))) }} id='endDateInput' />
+                    <input type='date' min={formatDate(startDate, "yyyy-mm-dd")} defaultValue={formatDate(endDate, "yyyy-mm-dd")} onChange={(e) => { setEndDate(getDateWithoutTimezone(new Date(e.target.value))) }} id='endDateInput' />
                     <button onClick={() => { setShouldFetchOrders(true) }} className='primary-button'>{t('Search')}</button>
                 </span>
             </div>
