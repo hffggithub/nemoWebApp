@@ -1,1 +1,1 @@
-var NEMO_API_HOST = "http://nemo-uat.hffg.local/api/";
+var NEMO_API_HOST = "http://nemoapi-uat.hffg.local/api/";
