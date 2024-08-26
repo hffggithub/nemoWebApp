@@ -12,7 +12,7 @@
   "Company": "公司",
   "Save": "保存",
   "Logout": "退出",
-  "Product ID": "客户编号",
+  "Product ID": "商品编号",
   "Name": "英文名",
   "Chinese Name": "中文名",
   "Contact": "联系人",
@@ -26,7 +26,7 @@
   "Total": "总计",
   "Available": "可用数量",
   "Price": "单价",
-  "Cost": "市价",
+  "Cost": "参考进价",
   "Success": "成功",
   "The order has been saved successfully": "订单已成功保存",
   "The order has been submitted and issued successfully": "订单已成功提交并确认",
@@ -119,5 +119,6 @@
   "cn": "中文",
   "Requested": "订购数量",
   "There is not enough inventory to fulfill the order, please verify the following items in the order. If this is intended please send the order again.":"库存不足，无法完成订单，请核实订单中的以下物品。如果需要，请重新发送订单。",
-  "The quantity exceeds the inventory available for this product, please verify in order summary, available inventory: ": "数量超出该产品的可用库存，请在订单汇总中核实，可用库存："
+  "The quantity exceeds the inventory available for this product, please verify in order summary, available inventory: ": "数量超出该产品的可用库存，请在订单汇总中核实，可用库存：",
+  "Balance": "Balance"
 }

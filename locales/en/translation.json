@@ -119,5 +119,6 @@
   "Modified": "Modified",
   "Requested": "Requested",
   "There is not enough inventory to fulfill the order, please verify the following items in the order. If this is intended please send the order again.":"There is not enough inventory to fulfill the order, please verify the following items in the order. If this is intended please send the order again.",
-  "The quantity exceeds the inventory available for this product, please verify in order summary, available inventory: ": "The quantity exceeds the inventory available for this product, please verify in order summary, available inventory: "
+  "The quantity exceeds the inventory available for this product, please verify in order summary, available inventory: ": "The quantity exceeds the inventory available for this product, please verify in order summary, available inventory: ",
+  "Balance": "Balance"
 }
