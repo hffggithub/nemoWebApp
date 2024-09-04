@@ -120,5 +120,12 @@
   "Requested": "订购数量",
   "There is not enough inventory to fulfill the order, please verify the following items in the order. If this is intended please send the order again.":"库存不足，无法完成订单，请核实订单中的以下物品。如果需要，请重新发送订单。",
   "The quantity exceeds the inventory available for this product, please verify in order summary, available inventory: ": "数量超出该产品的可用库存，请在订单汇总中核实，可用库存：",
-  "Balance": "Balance"
+  "Balance": "旧欠",
+  "Product Count": "品种数量",
+  "Carrier": "路线",
+  "Carrier Service": "站",
+  "Use price per pound for fixed weight products": "固定重量商品 - 以磅计价",
+  "Tier": "客户等级",
+  "Clone order": "复制订单",
+  "Do you want to clone this order?": "确定要复制订单？"
 }

@@ -120,5 +120,12 @@
   "Requested": "Requested",
   "There is not enough inventory to fulfill the order, please verify the following items in the order. If this is intended please send the order again.":"There is not enough inventory to fulfill the order, please verify the following items in the order. If this is intended please send the order again.",
   "The quantity exceeds the inventory available for this product, please verify in order summary, available inventory: ": "The quantity exceeds the inventory available for this product, please verify in order summary, available inventory: ",
-  "Balance": "Balance"
+  "Balance": "Balance",
+  "Product Count": "Product Count",
+  "Carrier": "Carrier",
+  "Carrier Service": "Carrier Service",
+  "Use price per pound for fixed weight products": "Use price per pound for fixed weight products",
+  "Tier": "Tier",
+  "Clone order": "Clone order",
+  "Do you want to clone this order?": "Do you want to clone this order?"
 }
