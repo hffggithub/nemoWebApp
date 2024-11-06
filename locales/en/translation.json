@@ -148,5 +148,7 @@
   "Service": "Service",
   "The quantity exceeds the inventory available for this product, and it is not allowed to be oversold: ": "The quantity exceeds the inventory available for this product, and it is not allowed to be oversold: ",
   "The quantity exceeds the inventory available for this product, please verify in order summary, available inventory: ": "The quantity exceeds the inventory available for this product, please verify in order summary, available inventory: ",
-  "You already have this product in your order, are you sure you want to add this item again?": "You already have this product in your order, are you sure you want to add this item again?"
+  "You already have this product in your order, are you sure you want to add this item again?": "You already have this product in your order, are you sure you want to add this item again?",
+  "Invalid carrier service": "Invalid carrier service",
+  "Please select an available carrier service for the selected carrier.": "Please select an available carrier service for the selected carrier."
 }
