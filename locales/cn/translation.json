@@ -148,6 +148,11 @@
   "The quantity exceeds the inventory available for this product, and it is not allowed to be oversold: ": "该产品的数量超过了可用库存，且此商品不允许超卖：",
   "The quantity exceeds the inventory available for this product, please verify in order summary, available inventory: ": "该产品的数量超过了可用库存，请在订单摘要中确认，当前的可用库存为：",
   "You already have this product in your order, are you sure you want to add this item again?": "您已经在订单中包含了此产品，您确定要再次添加此商品吗？",
-  "Invalid carrier service": "Invalid carrier service",
-  "Please select an available carrier service for the selected carrier.": "Please select an available carrier service for the selected carrier."
+  "Invalid carrier service": "无效的站点",
+  "Please select an available carrier service for the selected carrier.": "请在该线路中选择一个可用站点",
+  "On Account": "超付额",
+  "Fetching inventory": "获取库存数据",
+  "Fetching inventory, please wait...": "获取库存数据中，请稍等...",
+  "Refresh inventory": "更新库存数据",
+  "Don't show products without inventory.": "忽略0库存"
 }
