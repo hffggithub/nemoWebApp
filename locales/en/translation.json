@@ -155,5 +155,6 @@
   "Fetching inventory": "Fetching inventory",
   "Fetching inventory, please wait...": "Fetching inventory, please wait...",
   "Refresh inventory": "Refresh inventory",
-  "Don't show products without inventory.": "Don't show products without inventory."
+  "Don't show products without inventory.": "Don't show products without inventory.",
+  "ProductTableReferencePrice": "Price"
 }

@@ -154,5 +154,6 @@
   "Fetching inventory": "获取库存数据",
   "Fetching inventory, please wait...": "获取库存数据中，请稍等...",
   "Refresh inventory": "更新库存数据",
-  "Don't show products without inventory.": "忽略0库存"
+  "Don't show products without inventory.": "忽略0库存",
+  "ProductTableReferencePrice": "参考进价"
 }
