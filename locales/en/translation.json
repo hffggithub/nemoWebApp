@@ -155,5 +155,22 @@
   "Fetching inventory, please wait...": "Fetching inventory, please wait...",
   "Refresh inventory": "Refresh inventory",
   "Don't show products without inventory.": "Don't show products without inventory.",
-  "ProductTableReferencePrice": "Price"
+  "ProductTableReferencePrice": "Price",
+  "0-30": "0-30",
+  "31-60": "31-60",
+  "61-90": "61-90",
+  "91+": "91+",
+  "Balance Forward": "Balance Forward",
+  "Currency": "Currency",
+  "Customer Statements": "Customer Statements",
+  "Default Sales Rep": "Default Sales Rep",
+  "Error retrieving avialable companies, please contact your administrator.": "Error retrieving avialable companies, please contact your administrator.",
+  "Error retrieving avialable distribution center, please contact your administrator.": "Error retrieving avialable distribution center, please contact your administrator.",
+  "Fetching Customer Statements": "Fetching Customer Statements",
+  "Statements": "Statements",
+  "Korean Name": "Korean Name",
+  "Please only input whole numbers in quantity amount for this product.": "Please only input whole numbers in quantity amount for this product.",
+  "Print": "Print",
+  "Specifications": "Specifications",
+  "Total Balance": "Total Balance"
 }

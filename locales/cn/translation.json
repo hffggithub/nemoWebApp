@@ -154,5 +154,22 @@
   "Fetching inventory, please wait...": "获取库存数据中，请稍等...",
   "Refresh inventory": "更新库存数据",
   "Don't show products without inventory.": "忽略0库存",
-  "ProductTableReferencePrice": "参考进价"
+  "ProductTableReferencePrice": "参考进价",
+  "0-30": "0-30",
+  "31-60": "31-60",
+  "61-90": "61-90",
+  "91+": "91+",
+  "Balance Forward": "余额",
+  "Currency": "货币",
+  "Customer Statements": "客户月结单",
+  "Default Sales Rep": "默认销售",
+  "Error retrieving avialable companies, please contact your administrator.": "获取公司信息错误，请联系管理员",
+  "Error retrieving avialable distribution center, please contact your administrator.": "获取DC信息错误，请联系管理员",
+  "Fetching Customer Statements": "获取客户月结单中",
+  "Statements": "月结单",
+  "Korean Name": "韩文名称",
+  "Please only input whole numbers in quantity amount for this product.": "对于这个商品的数量，请输入整数",
+  "Print": "打印",
+  "Specifications": "商品规格",
+  "Total Balance": "总额"
 }
