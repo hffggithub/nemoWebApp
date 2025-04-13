@@ -171,5 +171,6 @@
   "Please only input whole numbers in quantity amount for this product.": "对于这个商品的数量，请输入整数",
   "Print": "打印",
   "Specifications": "商品规格",
-  "Total Balance": "总额"
+  "Total Balance": "总额",
+  "There was a network error while sending the order. Please verify the order has been created in the order lookup screen on another tab and try again if needed.":"单子发送的时候，网络出现了错误,请查看“订单查询”界面，查询这张订单是否已经被创建了，如果没有，请再次点击发送，谢谢！"
 }

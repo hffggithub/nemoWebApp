@@ -172,5 +172,6 @@
   "Please only input whole numbers in quantity amount for this product.": "Please only input whole numbers in quantity amount for this product.",
   "Print": "Print",
   "Specifications": "Specifications",
-  "Total Balance": "Total Balance"
+  "Total Balance": "Total Balance",
+  "There was a network error while sending the order. Please verify the order has been created in the order lookup screen on another tab and try again if needed.":"There was a network error while sending the order. Please verify the order has been created in the order lookup screen on another tab and try again if needed."
 }
