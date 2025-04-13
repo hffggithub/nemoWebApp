@@ -172,5 +172,5 @@
   "Print": "打印",
   "Specifications": "商品规格",
   "Total Balance": "总额",
-  "There was a network error while sending the order. Please verify the order has been created in the order lookup screen on another tab and try again if needed.":"单子发送的时候，网络出现了错误,请查看“订单查询”界面，查询这张订单是否已经被创建了，如果没有，请再次点击发送，谢谢！"
+  "There was an error while sending the order. Please verify that the order has been created in Fishbowl and try again if needed.":"单子发送出现了错误。 请查看Fishbowl的“Sales->Sales Order”界面，查询此客户的订单是否已经被创建了，商品是否齐全，如果没有，请在Nemo做修改并再次点击发送，谢谢"
 }
